@@ -73,16 +73,9 @@
 ;(close-all-sockets @quotes-socket)
 
 (defn get-avg-of [quotes key]
-  (when-let [clean-quotes (filter key quotes)]
-    (double
-      (/
-        (reduce
-          (fn [sum bid]
-            (if bid
-              (+ sum bid)
-              sum))
-          (map key clean-quotes))
-        (count clean-quotes)))))
+  (let [clean-quotes (filter key quotes)]
+    (when (not-empty clean-quotes)
+      (double (/ (reduce (fn [sum bid] (if bid (+ sum bid) sum)) (map key clean-quotes)) (count clean-quotes))))))
 
 (defn get-avg-bid
   ([quotes] (get-avg-of quotes :bid))

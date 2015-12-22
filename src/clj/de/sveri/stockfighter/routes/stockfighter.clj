@@ -13,7 +13,8 @@
             [de.sveri.stockfighter.service.jobs :as jobs]
             [de.sveri.stockfighter.service.helper :as h]
             [de.sveri.stockfighter.api.orders :as o]
-            [de.sveri.stockfighter.api.lvl-two :as lvl-two]))
+            [de.sveri.stockfighter.api.lvl-two :as lvl-two]
+            [de.sveri.stockfighter.api.lvl-three :as lvl-three]))
 
 (defmulti fail-or-result (fn [result _] (contains? result :error)))
 (defmethod fail-or-result false [r path] (response (get-in r path)))
@@ -71,6 +72,13 @@
   (lvl-two/disable-autobuy vsa)
   (response {:ok "ok"}))
 
+(defn start-lvl-three []
+
+  (response {:ok "ok"}))
+
+(defn stop-lvl-three []
+  (response {:ok "ok"}))
+
 (defn stockfighter-routes [{:keys [websockets]}]
   (routes (GET "/stockfighter" [] (index-page))
           (GET "/stockfighter/orders/venue/:venue/stock/:stock/account/:account"
@@ -81,7 +89,10 @@
           ;(POST "/stockfighter/quoteticker/start" req (start-quote-ticker (:params req)))
           ;(POST "/stockfighter/quoteticker/stop" req (stop-quote-ticker (:params req)))
           (POST "/stockfighter/ticker/start" req (start-ticker (:params req) websockets))
-          (POST "/stockfighter/ticker/stop" req (stop-ticker (:params req)))))
+          (POST "/stockfighter/ticker/stop" req (stop-ticker (:params req)))
+
+          (POST "/stockfighter/lvl-three/start" req (start-lvl-three))
+          (POST "/stockfighter/lvl-three/stop" req (stop-lvl-three))))
 
 (defn ws-routes [{:keys [websockets]}]
   (routes (GET "/stockfighter/qoutes/ws" req ((:ajax-get-or-ws-handshake-fn websockets) req))
