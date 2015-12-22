@@ -24,6 +24,7 @@
     value))
 
 (s/defn enable-autobuy :- s/Any [venue :- s/Str stock :- s/Str account :- s/Str order :- schem/new-batch-order]
+  (println "enabling autobuy for: " venue stock account)
   (swap! autobuy-state assoc (h/->unique-key venue stock account) order))
 
 (s/defn disable-autobuy :- s/Any [vsa :- schem/vsa]
@@ -33,8 +34,8 @@
 (s/defn autobuy :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa quote :- s/Any]
   (let [key (h/->unique-key venue stock account)]
     (when-let [autobuy-data (key @autobuy-state)]
+      ;(clojure.pprint/pprint quote)
       (when (and (:bid quote) (<= (:bid quote) (:price autobuy-data)))
-        ;(println "Buying for: " vsa " data: " autobuy-data)
         (api/new-order autobuy-data)))
     (swap! quote-history update key conj quote)))
 
@@ -91,11 +92,19 @@
 ;(close-all-sockets @quotes-socket)
 
 (defn get-avg-of [quotes key]
-  (let [clean-quotes (filter key quotes)]
-    (double (/ (reduce (fn [sum bid] (if bid (+ sum bid) sum)) (map key clean-quotes)) (count clean-quotes)))))
+  (when-let [clean-quotes (filter key quotes)]
+    (double
+      (/
+        (reduce
+          (fn [sum bid]
+            (if bid
+              (+ sum bid)
+              sum))
+          (map key clean-quotes))
+        (count clean-quotes)))))
 
 (defn get-avg-bid
-  ([quotes] (when quotes (get-avg-of quotes :bid)))
+  ([quotes] (get-avg-of quotes :bid))
   ([venue stock account & [last-x]]
    (let [quotes (->> (h/->unique-key venue stock account)
                      (get @quote-history))
@@ -118,10 +127,11 @@
          (get @execution-history)
          (->accumulated-executions)))
   ([executions :- s/Any]
-    (let [completed (filter #(= true (:standingComplete %)) executions)
-          filled (reduce + (map :filled completed))
-          price (reduce + (map :price completed))]
-      {:total-filled filled :filled-avg (if (= 0 price) 0 (/ price (count completed)))})))
+    (if-let [completed (filter #(= true (:standingComplete %)) executions)]
+      (let [filled (reduce + (map :filled completed))
+            price (reduce + (map :price completed))]
+        {:total-filled filled :filled-avg (if (= 0 price) 0 (/ price (count completed)))})
+      {:total-filled 0 :filled-avg 0})))
 
 
 ; maybe need this when we need exact timestamp order and not the order received via ws

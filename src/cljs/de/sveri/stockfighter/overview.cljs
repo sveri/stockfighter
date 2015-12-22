@@ -12,15 +12,12 @@
             [de.sveri.stockfighter.level :as lp]
             [de.sveri.stockfighter.executions :as exec]))
 
-;(def local-state (alan/local-storage (atom {:venue     "" :stock "" :account ""
-;                                            :new-order {:price     (js/parseInt 0) :qty (js/parseInt 100) :direction "buy"
-;                                                        :orderType "limit"}})
-;                                     :cljs-storage))
-;(add-watch local-state :validator-watch (fn [_ _ _ new] (s/validate schem/local-state new)))
+(def local-state (alan/local-storage (atom {}) :cljs-storage))
+(add-watch local-state :validator-watch (fn [_ _ _ new] (s/validate schem/local-state new)))
 
 (def state (atom {:vsa       {:venue "" :stock "" :account ""}
-                  :cur-level "chock_a_block"
-                  :new-order {:price     (js/parseInt 0) :qty (js/parseInt 100) :target-qty 100000 :direction "buy"
+                  :cur-level "sell_side"
+                  :new-order {:price     (js/parseInt 5000) :qty (js/parseInt 100) :target-qty 100 :direction "buy"
                               :orderType "limit"}}))
 (add-watch state :validator-watch (fn [_ _ _ new] (s/validate schem/state new)))
 
@@ -58,7 +55,7 @@
 (defn main-page []
   (let [orders (:orders @state)]
     [:div
-     [lp/level-page state state]
+     [lp/level-page local-state state]
      [:hr]
      [no/new-order-page state]
      [:hr]
@@ -69,6 +66,6 @@
 
 (defn ^:export main []
   (qt/start-router! state)
-  (lp/start-game state)
+  ;(lp/start-game state)
   (reagent/render-component (fn [] [main-page]) (h/get-elem "app")))
 

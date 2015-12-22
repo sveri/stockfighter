@@ -41,14 +41,14 @@
     [:div.col-md-2 [h/->local-text-field state "Total Quantity" [:new-order :target-qty] {:type "number"}]]
     [:div.col-md-1
      (h/wrap-with-form "Direction"
-                       [:select.form-control {:on-click #(swap! state assoc-in [:new-order :direction]
-                                                                (-> % .-target .-value))
+                       [:select.form-control {:on-change #(swap! state assoc-in [:new-order :direction]
+                                                                 (-> % .-target .-value))
                                               :value    (get-in @state [:new-order :direction])}
                         [:option {:value "buy"} "Buy"]
                         [:option {:value "sell"} "Sell"]])]
     [:div.col-md-2
      (h/wrap-with-form "Order Type"
-                       [:select.form-control {:on-click #(swap! state assoc-in [:new-order :orderType]
+                       [:select.form-control {:on-change #(swap! state assoc-in [:new-order :orderType]
                                                                 (-> % .-target .-value))
                                               :value    (get-in @state [:new-order :orderType])}
                         [:option {:value "limit"} "Limit"]

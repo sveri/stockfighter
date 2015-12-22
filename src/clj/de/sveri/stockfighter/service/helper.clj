@@ -3,5 +3,5 @@
 (def common-state (atom {}))
 
 (defn ->unique-key
-  ([{:keys [venue state account]}] (->unique-key venue state account))
+  ([{:keys [venue stock account]}] (->unique-key venue stock account))
   ([venue stock & [account]] (keyword (format "%s-%s-%s" venue stock account))))

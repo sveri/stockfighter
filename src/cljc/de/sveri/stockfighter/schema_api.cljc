@@ -34,18 +34,21 @@
 
 (def execution {:ok s/Bool :account s/Str :venue s/Str :stock s/Str :order order :standingId s/Num :incomingId s/Num
                 :price s/Num :filled s/Num :filledAt s/Inst :standingComplete s/Bool :incomingComplete s/Bool})
-(def execution-stream {:total-filled s/Num :filled-avg s/Num})
+(def execution-stream {:total-filled (s/cond-pre s/Num) :filled-avg (s/cond-pre s/Num)})
+;(def execution-stream {:total-filled (s/cond-pre nil s/Num) :filled-avg (s/cond-pre nil s/Num)})
 
-(def autobuy {s/Keyword new-batch-order})
+(def autobuy {s/Keyword new-batch-order })
+
 
 
 ;;;;;; gm ;;;;;;
 (def levels-response {:account s/Str :instanceId s/Num :instructions s/Any :ok s/Bool :secondsPerTradingDay s/Num
-                      :tickers [s/Str] :venues [s/Str]})
+                      :tickers [s/Str] :venues [s/Str] (s/optional-key :balances) s/Any})
 (def game-state {:ok s/Bool :done s/Bool :id s/Num :state s/Str :details {:endOfTheWorldDay s/Num :tradingDay s/Num}})
 
-(def game-info {:ok        s/Bool :done s/Bool :id s/Num :state s/Str
-                (s/optional-key :flash) {:info s/Str}
+(def game-info {:ok                       s/Bool :done s/Bool :id s/Num :state s/Str
+                (s/optional-key :flash)   {(s/optional-key :info) s/Str
+                                           (s/optional-key :warning) s/Str}
                 (s/optional-key :details) {:endOfTheWorldDay s/Num :tradingDay s/Num}})
 
 
@@ -68,10 +71,11 @@
             (s/optional-key :executions) execution-stream
             (s/optional-key :game-info) game-info
             (s/optional-key :cur-level) s/Str
-            (s/optional-key :instanceId) s/Num
+
              (s/optional-key :new-order) {(s/optional-key :price)      s/Num (s/optional-key :qty) s/Num
                                           (s/optional-key :target-qty) s/Num
                                           (s/optional-key :direction)  direction
                                           (s/optional-key :orderType)  order-type}
             })
 
+(def local-state {(s/optional-key :instanceId) s/Num})
