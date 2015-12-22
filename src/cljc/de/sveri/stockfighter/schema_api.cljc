@@ -36,6 +36,8 @@
                 :price s/Num :filled s/Num :filledAt s/Inst :standingComplete s/Bool :incomingComplete s/Bool})
 (def execution-stream {:total-filled s/Num :filled-avg s/Num})
 
+(def autobuy {s/Keyword {:target-price s/Num :step s/Num}})
+
 
 ;;;;;; gm ;;;;;;
 (def levels-response {:account s/Str :instanceId s/Num :instructions s/Any :ok s/Bool :secondsPerTradingDay s/Num
@@ -72,11 +74,4 @@
                                           (s/optional-key :direction)  direction
                                           (s/optional-key :orderType)  order-type}
             })
-;(def local-state (merge vsa
-;                        {(s/optional-key :cur-level) s/Str (s/optional-key :instanceId) s/Num
-;                         ;(s/optional-key :game-state) s/Any
-;                         (s/optional-key :new-order) {(s/optional-key :price)      s/Num (s/optional-key :qty) s/Num
-;                                                      (s/optional-key :target-qty) s/Num
-;                                                      (s/optional-key :direction)  direction
-;                                                      (s/optional-key :orderType)  order-type}}))
 

@@ -13,6 +13,14 @@
 (def quote-history (atom {}))
 (def execution-history (atom {}))
 
+(def autobuy (atom {}))
+
+(s/defn enable-autobuy :- s/Any [venue :- s/Str stock :- s/Str account :- s/Str target-price :- s/Num step :- s/Num]
+  (swap! autobuy assoc (h/->unique-key venue stock account) {:target-price target-price :step step}))
+
+(s/defn disaple-autobuy :- s/Any [vsa :- schem/vsa]
+  (swap! autobuy dissoc (h/->unique-key vsa)))
+
 (defn api->date [key value]
   (if (contains? #{:quoteTime :lastTrade :ts :filledAt} key)
     (f/parse schem/api-time-format value)

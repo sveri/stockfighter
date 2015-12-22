@@ -58,13 +58,23 @@
   (jobs/delete-executions vsa)
   (response {:ok "ok"}))
 
+(s/defn new-autobuy :- s/Any
+  [{:keys [venue symbol account price qty] :as order} :- schem/new-batch-order]
+  (ws/enable-autobuy venue symbol account price qty)
+  (response {:ok "ok"}))
 
+(s/defn new-autobuy-stop :- s/Any
+  [vsa :- schem/vsa]
+  (ws/disaple-autobuy vsa)
+  (response {:ok "ok"}))
 
 (defn stockfighter-routes [config]
   (routes (GET "/stockfighter" [] (index-page))
           (GET "/stockfighter/orders/venue/:venue/stock/:stock/account/:account"
                [venue stock account] (orders venue stock account))
           (POST "/stockfighter/orders" req (new-order (:params req)))
+          (POST "/stockfighter/autobuy" req (new-autobuy (:params req)))
+          (POST "/stockfighter/autobuy/stop" req (new-autobuy-stop (:params req)))
           (POST "/stockfighter/quoteticker/start" req (start-quote-ticker (:params req)))
           (POST "/stockfighter/quoteticker/stop" req (stop-quote-ticker (:params req)))
           (POST "/stockfighter/ticker/start" req (start-ticker (:params req)))

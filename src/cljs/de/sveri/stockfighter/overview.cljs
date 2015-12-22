@@ -25,26 +25,11 @@
 (add-watch state :validator-watch (fn [_ _ _ new] (s/validate schem/state new)))
 
 
-;(defn input-page []
-;  [:div
-;   [:div.row
-;    [:div.col-md-4 [h/->local-text-field state "Venue" [:vsa :venue]]]
-;    [:div.col-md-4 [h/->local-text-field state "Stock" [:vsa :stock]]]
-;    [:div.col-md-4 [h/->local-text-field state "Account" [:vsa :account]]]]])
-
-(defn load-orders [_]
-  (let [venue (:venue @state) stock (:stock @state) account (:account @state)]
-    (GET (str "/stockfighter/orders/venue/" venue "/stock/" stock "/account/" account)
-         {:handler       #(swap! state assoc :orders %)
-          :error-handler h/error-handler})))
-
-(defn button-page []
-  [:div.row
-   ;[:button.btn.btn-primary.pull-left {:style {:margin-left "10px"} :on-click #(do (.preventDefault %)
-   ;                                                                                (start-quote-ticker state))} "Start All Ticker"]
-   ;[:button.btn.btn-primary.pull-left {:style {:margin-left "10px"} :on-click #(do (.preventDefault %)
-   ;                                                                                (stop-quote-ticker state))} "Stop All Ticker"]
-   #_[:button.btn.btn-primary.pull-right {:style {:margin-right "30px"} :on-click load-orders} "Load Orders"]])
+;(defn load-orders [_]
+;  (let [venue (:venue @state) stock (:stock @state) account (:account @state)]
+;    (GET (str "/stockfighter/orders/venue/" venue "/stock/" stock "/account/" account)
+;         {:handler       #(swap! state assoc :orders %)
+;          :error-handler h/error-handler})))
 
 ;(s/defn
 ;  order-table
@@ -74,17 +59,12 @@
   (let [orders (:orders @state)]
     [:div
      [lp/level-page state state]
-     ;[input-page]
      [:hr]
      [no/new-order-page state]
-     ;[:hr]
-     ;[button-page]
      [:hr]
      [tp/ticker-page state]
      [:hr]
      [exec/exec-page state]
-     ;[qt/t]
-     ;     [order-table orders]
      ]))
 
 (defn ^:export main []
