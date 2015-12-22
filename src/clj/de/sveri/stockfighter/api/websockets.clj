@@ -5,6 +5,7 @@
             [clj-time.format :as f]
             [de.sveri.stockfighter.api.config :as conf]
             [de.sveri.stockfighter.schema-api :as schem]
+            [de.sveri.stockfighter.api.api :as api]
             [de.sveri.stockfighter.service.helper :as h]))
 
 (def quotes-socket (atom {}))
@@ -13,24 +14,36 @@
 (def quote-history (atom {}))
 (def execution-history (atom {}))
 
-(def autobuy (atom {}))
+(def autobuy-state (atom {}))
 
-(s/defn enable-autobuy :- s/Any [venue :- s/Str stock :- s/Str account :- s/Str target-price :- s/Num step :- s/Num]
-  (swap! autobuy assoc (h/->unique-key venue stock account) {:target-price target-price :step step}))
 
-(s/defn disaple-autobuy :- s/Any [vsa :- schem/vsa]
-  (swap! autobuy dissoc (h/->unique-key vsa)))
 
 (defn api->date [key value]
   (if (contains? #{:quoteTime :lastTrade :ts :filledAt} key)
     (f/parse schem/api-time-format value)
     value))
 
+(s/defn enable-autobuy :- s/Any [venue :- s/Str stock :- s/Str account :- s/Str order :- schem/new-batch-order]
+  (swap! autobuy-state assoc (h/->unique-key venue stock account) order))
+
+(s/defn disable-autobuy :- s/Any [vsa :- schem/vsa]
+  (println "disabling autobuy for: " vsa)
+  (swap! autobuy-state dissoc (h/->unique-key vsa)))
+
+(s/defn autobuy :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa quote :- s/Any]
+  (let [key (h/->unique-key venue stock account)]
+    (when-let [autobuy-data (key @autobuy-state)]
+      (when (and (:bid quote) (<= (:bid quote) (:price autobuy-data)))
+        ;(println "Buying for: " vsa " data: " autobuy-data)
+        (api/new-order autobuy-data)))
+    (swap! quote-history update key conj quote)))
+
 (s/defn parse-quote :- s/Any
-  [venue stock account quote-response :- s/Str]
+  [vsa :- schem/vsa quote-response :- s/Str]
   (let [quote (json/read-str quote-response :key-fn keyword :value-fn api->date)]
     (if (:ok quote)
-      (swap! quote-history update (h/->unique-key venue stock account) conj (:quote quote))
+      (autobuy vsa (:quote quote))
+      ;(clojure.pprint/pprint (:quote quote))
       (println "something else happened: " quote-response))))
 
 (s/defn connect-quotes :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa]
@@ -38,8 +51,9 @@
   (swap! quotes-socket assoc (h/->unique-key venue stock account)
          (ws/connect
            (str conf/ws-uri account "/venues/" venue "/tickertape/stocks/" stock)
-           :on-receive #(parse-quote venue stock account %)
-           :on-close (fn [a b] (println a " - " b " - " (format "Closed quote websocket for %s?" (str venue stock account))))
+           :on-receive #(parse-quote vsa %)
+           :on-close (fn [a b] (println a " - " b " - " (format "Closed quote websocket for %s?" (str venue stock account)))
+                       (when (= 1006 a) (connect-quotes vsa)))
            :on-error #(println (format "Some error occured for: %s - %s - %s: \n %s" venue stock account (.printStackTrace %))))))
 
 
@@ -57,7 +71,7 @@
            (str conf/ws-uri account "/venues/" venue "/executions/stocks/" stock)
            :on-receive #(parse-execution venue stock account %)
            :on-close (fn [a b] (println a " - " b " - " (format "Closed execution websocket for %s?" (str venue stock account)))
-                       (connect-executions vsa))
+                       (when (= 1006 a) (connect-executions vsa)))
            :on-error #(println (format "Some error occured for: %s - %s - %s: \n %s" venue stock account (.printStackTrace %))))))
 
 (s/defn close-sockets-by-key :- s/Any [{:keys [venue stock account]} :- schem/vsa]
@@ -81,7 +95,7 @@
     (double (/ (reduce (fn [sum bid] (if bid (+ sum bid) sum)) (map key clean-quotes)) (count clean-quotes)))))
 
 (defn get-avg-bid
-  ([quotes] (get-avg-of quotes :bid))
+  ([quotes] (when quotes (get-avg-of quotes :bid)))
   ([venue stock account & [last-x]]
    (let [quotes (->> (h/->unique-key venue stock account)
                      (get @quote-history))
@@ -100,14 +114,14 @@
 
 (s/defn ->accumulated-executions :- schem/execution-stream
   ([venue :- s/Str stock :- s/Str account :- s/Str]
-   (->> (h/->unique-key venue stock account)
-           (get @execution-history)
-           (->accumulated-executions)))
+    (->> (h/->unique-key venue stock account)
+         (get @execution-history)
+         (->accumulated-executions)))
   ([executions :- s/Any]
-   (let [completed (filter #(= true (:standingComplete %)) executions)
-         filled (reduce + (map :filled completed))
-         price (reduce + (map :price completed))]
-     {:total-filled filled :filled-avg (if (= 0 price) 0 (/ price (count completed)))})))
+    (let [completed (filter #(= true (:standingComplete %)) executions)
+          filled (reduce + (map :filled completed))
+          price (reduce + (map :price completed))]
+      {:total-filled filled :filled-avg (if (= 0 price) 0 (/ price (count completed)))})))
 
 
 ; maybe need this when we need exact timestamp order and not the order received via ws

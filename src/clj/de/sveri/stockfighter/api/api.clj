@@ -1,5 +1,5 @@
 (ns de.sveri.stockfighter.api.api
-  (:require [de.sveri.stockfighter.api.config :as conf :refer [api-key base-uri gm-uri]]
+  (:require [de.sveri.stockfighter.api.config :refer [api-key base-uri gm-uri]]
             [clj-http.client :as client]
             [schema.core :as s]
             [de.sveri.stockfighter.schema-api :as schem]

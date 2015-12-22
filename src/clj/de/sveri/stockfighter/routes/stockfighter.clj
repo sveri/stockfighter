@@ -59,13 +59,14 @@
   (response {:ok "ok"}))
 
 (s/defn new-autobuy :- s/Any
-  [{:keys [venue symbol account price qty] :as order} :- schem/new-batch-order]
-  (ws/enable-autobuy venue symbol account price qty)
+  [{:keys [venue stock account] :as order} :- schem/new-batch-order]
+  ;(clojure.pprint/pprint order)
+  (ws/enable-autobuy venue stock account order)
   (response {:ok "ok"}))
 
 (s/defn new-autobuy-stop :- s/Any
   [vsa :- schem/vsa]
-  (ws/disaple-autobuy vsa)
+  (ws/disable-autobuy vsa)
   (response {:ok "ok"}))
 
 (defn stockfighter-routes [config]

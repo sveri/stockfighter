@@ -26,7 +26,7 @@
          :error-handler (fn [e] (println "some error occured: " e))}))
 
 (defn new-autobuy-stop [state]
-  (POST "/stockfighter/autobuy-stop"
+  (POST "/stockfighter/autobuy/stop"
         {:params        (:vsa @state)
          :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
          :handler       (fn [e] (println e))

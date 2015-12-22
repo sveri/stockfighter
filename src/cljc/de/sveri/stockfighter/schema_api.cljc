@@ -36,7 +36,7 @@
                 :price s/Num :filled s/Num :filledAt s/Inst :standingComplete s/Bool :incomingComplete s/Bool})
 (def execution-stream {:total-filled s/Num :filled-avg s/Num})
 
-(def autobuy {s/Keyword {:target-price s/Num :step s/Num}})
+(def autobuy {s/Keyword new-batch-order})
 
 
 ;;;;;; gm ;;;;;;
