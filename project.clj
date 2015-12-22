@@ -81,8 +81,10 @@
                  ;[twarc "0.1.8"]
                  [org.immutant/scheduling "2.1.1"]
 
-                 [org.clojure/tools.namespace "0.2.11"]
-                 [mount "0.1.6"]
+                 [org.danielsz/system "0.1.8"]
+
+                 ;[org.clojure/tools.namespace "0.2.11"]
+                 #_[mount "0.1.6"]
                  [clj-time "0.11.0"]
                  [org.clojure/core.match "0.3.0-alpha4"]]
 

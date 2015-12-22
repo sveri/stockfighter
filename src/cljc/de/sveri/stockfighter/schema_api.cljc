@@ -40,7 +40,6 @@
 (def autobuy {s/Keyword new-batch-order })
 
 
-
 ;;;;;; gm ;;;;;;
 (def levels-response {:account s/Str :instanceId s/Num :instructions s/Any :ok s/Bool :secondsPerTradingDay s/Num
                       :tickers [s/Str] :venues [s/Str] (s/optional-key :balances) s/Any})
@@ -50,6 +49,7 @@
                 (s/optional-key :flash)   {(s/optional-key :info) s/Str
                                            (s/optional-key :warning) s/Str}
                 (s/optional-key :details) {:endOfTheWorldDay s/Num :tradingDay s/Num}})
+
 
 
 ;; general

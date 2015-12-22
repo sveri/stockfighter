@@ -1,7 +1,7 @@
 (ns de.sveri.stockfighter.components.atom-storage
   (:require [de.sveri.stockfighter.api.websockets :as ws]
             [de.sveri.stockfighter.api.orders :as o]
-            [mount.core :refer [defstate]]))
+            #_[mount.core :refer [defstate]]))
 
 (def quotes-file "./env/dev/quotes.edn")
 (def executions-file "./env/dev/executions.edn")
@@ -20,5 +20,5 @@
   (spit executions-file (prn-str @ws/execution-history))
   (spit order-file (prn-str @o/order-history)))
 
-(defstate atom-storage :start (load-atoms)
-          :stop (store-atoms))
+;(defstate atom-storage :start (load-atoms)
+;          :stop (store-atoms))

@@ -1,6 +1,7 @@
 (ns de.sveri.stockfighter.service.jobs
-  (:require [de.sveri.stockfighter.components.quartzite :refer [quartzite]]
-            [de.sveri.stockfighter.components.websockets :refer [ws]]
+  (:require
+    ;[de.sveri.stockfighter.components.quartzite :refer [quartzite]]
+    ;        [de.sveri.stockfighter.components.websockets :refer [ws]]
             [de.sveri.stockfighter.api.websockets :as api-ws]
             [de.sveri.stockfighter.api.api :as stock-api]
             [schema.core :as s]

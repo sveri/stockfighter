@@ -1,5 +1,6 @@
 (ns de.sveri.stockfighter.components.config
-  (:require [mount.core :refer [defstate]]
+  (:require #_[mount.core :refer [defstate]]
+            [com.stuartsierra.component :as component]
             [nomad :refer [read-config]]
             [clojure.java.io :as io]))
 
@@ -8,14 +9,14 @@
     (read-config (io/file config-path))
     (read-config (io/resource "closp.edn"))))
 
-;(defrecord Config [config]
-;  component/Lifecycle
-;  (start [component]
-;    (assoc component :config config))
-;  (stop [component]
-;    (assoc component :config nil)))
+(defrecord Config [config]
+  component/Lifecycle
+  (start [component]
+    (assoc component :config config))
+  (stop [component]
+    (assoc component :config nil)))
 
-;(defn new-config [config]
-;  (->Config config))
+(defn new-config [config]
+  (->Config config))
 
-(defstate config :start (prod-conf-or-dev))
+;(defstate config :start (prod-conf-or-dev))

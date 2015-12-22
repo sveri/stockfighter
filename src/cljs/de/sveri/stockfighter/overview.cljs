@@ -21,7 +21,6 @@
                               :orderType "limit"}}))
 (add-watch state :validator-watch (fn [_ _ _ new] (s/validate schem/state new)))
 
-
 ;(defn load-orders [_]
 ;  (let [venue (:venue @state) stock (:stock @state) account (:account @state)]
 ;    (GET (str "/stockfighter/orders/venue/" venue "/stock/" stock "/account/" account)

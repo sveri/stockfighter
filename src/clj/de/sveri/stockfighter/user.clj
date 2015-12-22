@@ -1,17 +1,27 @@
 (ns de.sveri.stockfighter.user
-  (:require [clojure.tools.namespace.repl :as tn]
-            [schema.core :as s]
-            [mount.core :as mount]
-            [de.sveri.stockfighter.components.server]
-            [de.sveri.stockfighter.components.db]))
+  (:require [schema.core :as s]
+            #_[mount.core :as mount]
+            [reloaded.repl :refer [go reset stop]]
+            [de.sveri.stockfighter.components.components :refer [dev-system]]
+            ;[de.sveri.stockfighter.components.server]
+            ;[de.sveri.stockfighter.components.db]
+            ))
 
-(defn start []
+;(defn start []
+;  (s/set-fn-validation! true)
+;  (mount/start))
+;
+;(defn stop []
+;  (mount/stop))
+;
+;(defn reset []
+;  (stop)
+;  (tn/refresh :after 'de.sveri.stockfighter.user/start))
+
+
+
+(defn start-dev-system []
   (s/set-fn-validation! true)
-  (mount/start))
+  (go))
 
-(defn stop []
-  (mount/stop))
-
-(defn reset []
-  (stop)
-  (tn/refresh :after 'de.sveri.stockfighter.user/start))
+(reloaded.repl/set-init! dev-system)

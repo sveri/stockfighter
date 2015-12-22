@@ -3,11 +3,11 @@
     ;[reloaded.repl :refer [go stop]]
             [clj-webdriver.taxi :as w]
             ;[com.stuartsierra.component :as component]
-            [mount.core :as mount]
+            #_[mount.core :as mount]
             [joplin.core :as j]
             [taoensso.tower :as tower]
             [de.sveri.stockfighter.components.config]
-            [de.sveri.stockfighter.components.locale :refer [get-tconfig]]
+            [de.sveri.stockfighter.components.locale :refer [tconfig]]
             ))
 
 (def db-uri "jdbc:sqlite:./db/stockfigherui-integ-test.sqlite")
@@ -59,11 +59,11 @@ Your Team"
   ;(start-server)
   ;(mount/start)
 
-  (mount/start-with {#'de.sveri.stockfighter.components.config/config
-                     #'de.sveri.stockfighter.web.setup/test-config})
+  ;(mount/start-with {#'de.sveri.stockfighter.components.config/config
+  ;                   #'de.sveri.stockfighter.web.setup/test-config})
   (f)
   ;(stop-server)
-  (mount/stop)
+  ;(mount/stop)
   )
 
 (defn browser-setup [f]
@@ -73,4 +73,5 @@ Your Team"
 
 ;; locale stuff
 
-(def t (tower/make-t (:tconfig (get-tconfig))))
+(def t nil)
+;(def t (tower/make-t (:tconfig (get-tconfig))))

@@ -1,6 +1,7 @@
 (ns de.sveri.stockfighter.components.handler
   (:require [compojure.core :refer [defroutes routes]]
             [noir.response :refer [redirect]]
+            [com.stuartsierra.component :as component]
             [noir.util.middleware :refer [app-handler]]
             [ring.middleware.defaults :refer [site-defaults]]
             [ring.middleware.file-info :refer [wrap-file-info]]
@@ -8,9 +9,9 @@
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [compojure.route :as route]
-            [mount.core :refer [defstate]]
-            [de.sveri.stockfighter.components.config :refer [config]]
-            [de.sveri.stockfighter.components.locale :refer [get-tconfig]]
+    #_[mount.core :refer [defstate]]
+    ;[de.sveri.stockfighter.components.config :refer [config]]
+    ;[de.sveri.stockfighter.components.locale :refer [get-tconfig]]
             [de.sveri.stockfighter.routes.home :refer [home-routes]]
             [de.sveri.stockfighter.routes.cc :refer [cc-routes]]
             [de.sveri.stockfighter.routes.user :refer [user-routes registration-routes]]
@@ -19,20 +20,20 @@
             [de.sveri.stockfighter.middleware :refer [load-middleware]]))
 
 (defroutes base-routes
-  (route/resources "/")
-  (route/not-found "Not Found"))
+           (route/resources "/")
+           (route/not-found "Not Found"))
 
 ;; timeout sessions after 30 minutes
 (def session-defaults
-  {:timeout (* 60 30)
+  {:timeout          (* 60 30)
    :timeout-response (redirect "/")})
 
 (defn- mk-defaults
-       "set to true to enable XSS protection"
-       [xss-protection?]
-       (-> site-defaults
-           (update-in [:session] merge session-defaults)
-           (assoc-in [:security :anti-forgery] xss-protection?)))
+  "set to true to enable XSS protection"
+  [xss-protection?]
+  (-> site-defaults
+      (update-in [:session] merge session-defaults)
+      (assoc-in [:security :anti-forgery] xss-protection?)))
 
 
 ;(def app-routes
@@ -62,40 +63,41 @@
    (wrap-routes handler #(apply middleware % args))))
 
 
-(defn get-handler [config locale]
+(defn get-handler [config locale websockets]
   (routes
-    (-> ws-routes
+    (-> (ws-routes websockets)
         (wrap-routes wrap-params)
         (wrap-routes wrap-keyword-params))
     (-> (app-handler
-         (into [] (concat (when (:registration-allowed? config) [(registration-routes config)])
-                          ;; add your application routes here
-                          [level-routes (cc-routes config) home-routes (stockfighter-routes config) (user-routes config) base-routes]))
-         ;; add custom middleware here
-         :middleware (load-middleware config (:tconfig locale))
-         :ring-defaults (mk-defaults false)
-         ;; add access rules here
-         :access-rules []
-         ;; serialize/deserialize the following data formats
-         ;; available formats:
-         ;; :json :json-kw :yaml :yaml-kw :edn :yaml-in-html
-         ;:formats [:transit-json]
-         :formats [:json-kw :edn :transit-json]
-         )
-       ; Makes static assets in $PROJECT_DIR/resources/public/ available.
-       (wrap-file "resources")
-       ; Content-Type, Content-Length, and Last Modified headers for files in body
-       (wrap-file-info)
-       )))
+          (into [] (concat (when (:registration-allowed? config) [(registration-routes config)])
+                           ;; add your application routes here
+                           [level-routes (cc-routes config) home-routes (stockfighter-routes websockets)
+                            (user-routes config) base-routes]))
+          ;; add custom middleware here
+          :middleware (load-middleware config (:tconfig locale))
+          :ring-defaults (mk-defaults false)
+          ;; add access rules here
+          :access-rules []
+          ;; serialize/deserialize the following data formats
+          ;; available formats:
+          ;; :json :json-kw :yaml :yaml-kw :edn :yaml-in-html
+          ;:formats [:transit-json]
+          :formats [:json-kw :edn :transit-json]
+          )
+        ; Makes static assets in $PROJECT_DIR/resources/public/ available.
+        (wrap-file "resources")
+        ; Content-Type, Content-Length, and Last Modified headers for files in body
+        (wrap-file-info)
+        )))
 
-;(defrecord Handler [config locale]
-;  comp/Lifecycle
-;  (start [comp]
-;    (assoc comp :handler (get-handler (:config config) locale)))
-;  (stop [comp]
-;    (assoc comp :handler nil)))
-;
-;(defn new-handler []
-;  (map->Handler {}))
+(defrecord Handler [config locale websockets]
+  component/Lifecycle
+  (start [comp]
+    (assoc comp :handler (get-handler (:config config) locale websockets)))
+  (stop [comp]
+    (assoc comp :handler nil)))
 
-(defstate handler :start (get-handler config (get-tconfig)))
+(defn new-handler []
+  (map->Handler {}))
+
+;(defstate handler :start (get-handler config (get-tconfig)))

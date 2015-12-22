@@ -1622,3 +1622,24 @@ notifying browser that file changed:  out\de\sveri\stockfighter\level.js
 [0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
 notifying browser that file changed:  out\de\sveri\stockfighter\level.js
 [32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.606 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  resources/public/js/compiled/out/goog/deps.js
+notifying browser that file changed:  resources/public/js/compiled/out/cljs_deps.js
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.989 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 1.314 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+[31mCompiling "resources/public/js/compiled/app.js" failed.
+[0mANALYSIS ERROR: Invalid list syntax state in (swap! state assoc :game-info m). Valid syntax: [[:default :guard] [:or :default] [:default :only] [:default :seq] [:default :when] [:default :as] [:default :<<] [:default :clojure.core.match/vector]] at line 20 C:\Users\sveri\IdeaProjects\stockfigherui\src\cljs\de\sveri\stockfighter\quotes_ticker.cljs on file C:\Users\sveri\IdeaProjects\stockfigherui\src\cljs\de\sveri\stockfighter\quotes_ticker.cljs, line 20, column 3
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.426 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\quotes_ticker.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.789 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.856 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\quotes_ticker.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.714 seconds.[0m

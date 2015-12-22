@@ -6,7 +6,7 @@
             [clojure.core.async :as a :refer [<! >! put! close! go]]
             [de.sveri.stockfighter.layout :as layout]
             [de.sveri.stockfighter.schema-api :as schem]
-            [de.sveri.stockfighter.components.websockets :as ws-comp]
+    ;[de.sveri.stockfighter.components.websockets :as ws-comp]
             [de.sveri.stockfighter.api.api :as api]
             [de.sveri.stockfighter.api.websockets :as ws]
             [de.sveri.stockfighter.service.jobs :as qh]
@@ -35,7 +35,7 @@
 
 (s/defn start-quote-ticker :- s/Any [vsa :- schem/vsa]
   (ws/connect-quotes vsa)
-  (qh/start-pass-averages vsa ws-comp/ws)
+  ;(qh/start-pass-averages vsa ws-comp/ws)
   (response {:ok "ok"}))
 
 (s/defn stop-quote-ticker :- s/Any [vsa :- schem/vsa]
@@ -43,12 +43,12 @@
   (qh/delete-pass-averages vsa)
   (response {:ok "ok"}))
 
-(s/defn start-ticker :- s/Any [vsa :- schem/vsa]
-  (ws/connect-quotes vsa)
-  (ws/connect-executions vsa)
-  (qh/start-pass-averages vsa ws-comp/ws)
-  (qh/start-pass-executions vsa ws-comp/ws)
-  (jobs/start-game-info (get-in @h/common-state [:game-info :instanceId]) vsa ws-comp/ws)
+(s/defn start-ticker :- s/Any [vsa :- schem/vsa websockets :- s/Any]
+  ;(ws/connect-quotes vsa)
+  ;(ws/connect-executions vsa)
+  ;(qh/start-pass-averages vsa ws-comp/ws)
+  ;(qh/start-pass-executions vsa ws-comp/ws)
+  (jobs/start-game-info (get-in @h/common-state [:game-info :instanceId]) vsa websockets)
   (response {:ok "ok"}))
 
 (s/defn stop-ticker :- s/Any [vsa :- schem/vsa]
@@ -60,7 +60,6 @@
 
 (s/defn new-autobuy :- s/Any
   [{:keys [venue stock account] :as order} :- schem/new-batch-order]
-  ;(clojure.pprint/pprint order)
   (ws/enable-autobuy venue stock account order)
   (response {:ok "ok"}))
 
@@ -69,7 +68,7 @@
   (ws/disable-autobuy vsa)
   (response {:ok "ok"}))
 
-(defn stockfighter-routes [config]
+(defn stockfighter-routes [{:keys [websockets]}]
   (routes (GET "/stockfighter" [] (index-page))
           (GET "/stockfighter/orders/venue/:venue/stock/:stock/account/:account"
                [venue stock account] (orders venue stock account))
@@ -78,11 +77,9 @@
           (POST "/stockfighter/autobuy/stop" req (new-autobuy-stop (:params req)))
           (POST "/stockfighter/quoteticker/start" req (start-quote-ticker (:params req)))
           (POST "/stockfighter/quoteticker/stop" req (stop-quote-ticker (:params req)))
-          (POST "/stockfighter/ticker/start" req (start-ticker (:params req)))
-          (POST "/stockfighter/ticker/stop" req (stop-ticker (:params req)))
+          (POST "/stockfighter/ticker/start" req (start-ticker (:params req) websockets))
+          (POST "/stockfighter/ticker/stop" req (stop-ticker (:params req)))))
 
-          ))
-
-(defroutes ws-routes
-           (GET  "/stockfighter/qoutes/ws" req ((:ajax-get-or-ws-handshake-fn ws-comp/ws) req))
-           (POST "/stockfighter/qoutes/ws" req ((:ajax-post-fn ws-comp/ws) req)))
+(defn ws-routes [{:keys [websockets]}]
+  (routes (GET "/stockfighter/qoutes/ws" req ((:ajax-get-or-ws-handshake-fn websockets) req))
+          (POST "/stockfighter/qoutes/ws" req ((:ajax-post-fn websockets) req))))
