@@ -9,6 +9,7 @@
     [de.sveri.stockfighter.components.db :refer [new-db]]
     [de.sveri.stockfighter.components.locale :as l]
     [de.sveri.stockfighter.components.websockets :as ws]
+    [de.sveri.stockfighter.components.ws-to-api :as ws-to-api]
     [de.sveri.stockfighter.components.scheduler :as s]))
 
 
@@ -16,6 +17,7 @@
   (component/system-map
     :locale (l/new-locale)
     :websockets (ws/new-websockets)
+    :websockets-to-api (ws-to-api/new-websockets-to-api)
     :scheduler (s/new-scheduler)
     :config (c/new-config (c/prod-conf-or-dev))
     :db (component/using (new-db) [:config])
@@ -27,6 +29,7 @@
   (component/system-map
     :locale (l/new-locale)
     :websockets (ws/new-websockets)
+    :websockets-to-api (ws-to-api/new-websockets-to-api)
     :scheduler (s/new-scheduler)
     :config (c/new-config (c/prod-conf-or-dev))
     :db (component/using (new-db) [:config])

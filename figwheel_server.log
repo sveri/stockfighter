@@ -1643,3 +1643,96 @@ notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
 [0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
 notifying browser that file changed:  out\de\sveri\stockfighter\quotes_ticker.js
 [32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.714 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 1.185 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\ticker.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.728 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+[31mCompiling "resources/public/js/compiled/app.js" failed.
+[0mANALYSIS ERROR: Wrong number of args (5) passed to: analyzer/eval1356/fn--1357/pfn--1358 at line 82 src\cljc\de\sveri\stockfighter\schema_api.cljc on file src\cljc\de\sveri\stockfighter\schema_api.cljc, line 82, column 1
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.359 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+WARNING: Use of undeclared Var de.sveri.stockfighter.schema-api/local-state at line 7 C:\Users\sveri\IdeaProjects\stockfigherui\src\cljs\de\sveri\stockfighter\new_order.cljs
+WARNING: Use of undeclared Var de.sveri.stockfighter.new-order/local-state at line 23 C:\Users\sveri\IdeaProjects\stockfigherui\src\cljs\de\sveri\stockfighter\new_order.cljs
+WARNING: Wrong number of args (1) passed to de.sveri.stockfighter.new-order/new-order at line 59 C:\Users\sveri\IdeaProjects\stockfigherui\src\cljs\de\sveri\stockfighter\new_order.cljs
+WARNING: Use of undeclared Var de.sveri.stockfighter.schema-api/local-state at line 16 src\cljs\de\sveri\stockfighter\overview.cljs
+notifying browser that file changed:  out\de\sveri\stockfighter\new_order.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 1.032 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+WARNING: Use of undeclared Var de.sveri.stockfighter.schema-api/local-state at line 7 C:\Users\sveri\IdeaProjects\stockfigherui\src\cljs\de\sveri\stockfighter\new_order.cljs
+WARNING: Use of undeclared Var de.sveri.stockfighter.schema-api/local-state at line 16 src\cljs\de\sveri\stockfighter\overview.cljs
+notifying browser that file changed:  out\de\sveri\stockfighter\new_order.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 1.056 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+WARNING: Use of undeclared Var de.sveri.stockfighter.schema-api/local-state at line 7 C:\Users\sveri\IdeaProjects\stockfigherui\src\cljs\de\sveri\stockfighter\new_order.cljs
+WARNING: Use of undeclared Var de.sveri.stockfighter.schema-api/local-state at line 16 src\cljs\de\sveri\stockfighter\overview.cljs
+notifying browser that file changed:  out\de\sveri\stockfighter\new_order.js
+notifying browser that file changed:  out\de\sveri\stockfighter\ticker.js
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.836 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+WARNING: Use of undeclared Var de.sveri.stockfighter.ticker/state at line 8 src\cljs\de\sveri\stockfighter\ticker.cljs
+WARNING: Use of undeclared Var de.sveri.stockfighter.schema-api/local-state at line 16 src\cljs\de\sveri\stockfighter\overview.cljs
+notifying browser that file changed:  out\de\sveri\stockfighter\ticker.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.677 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+WARNING: Use of undeclared Var de.sveri.stockfighter.ticker/state at line 8 src\cljs\de\sveri\stockfighter\ticker.cljs
+WARNING: Use of undeclared Var de.sveri.stockfighter.ticker/state at line 18 src\cljs\de\sveri\stockfighter\ticker.cljs
+WARNING: Use of undeclared Var de.sveri.stockfighter.schema-api/local-state at line 16 src\cljs\de\sveri\stockfighter\overview.cljs
+notifying browser that file changed:  out\de\sveri\stockfighter\ticker.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.725 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+WARNING: Use of undeclared Var de.sveri.stockfighter.ticker/state at line 8 src\cljs\de\sveri\stockfighter\ticker.cljs
+WARNING: Use of undeclared Var de.sveri.stockfighter.ticker/state at line 16 src\cljs\de\sveri\stockfighter\ticker.cljs
+WARNING: Use of undeclared Var de.sveri.stockfighter.schema-api/local-state at line 16 src\cljs\de\sveri\stockfighter\overview.cljs
+notifying browser that file changed:  out\de\sveri\stockfighter\ticker.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.727 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+WARNING: Use of undeclared Var de.sveri.stockfighter.ticker/state at line 8 src\cljs\de\sveri\stockfighter\ticker.cljs
+WARNING: Use of undeclared Var de.sveri.stockfighter.schema-api/local-state at line 16 src\cljs\de\sveri\stockfighter\overview.cljs
+notifying browser that file changed:  out\de\sveri\stockfighter\ticker.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.646 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+WARNING: Use of undeclared Var de.sveri.stockfighter.schema-api/local-state at line 16 src\cljs\de\sveri\stockfighter\overview.cljs
+notifying browser that file changed:  out\de\sveri\stockfighter\ticker.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.749 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+WARNING: Use of undeclared Var de.sveri.stockfighter.schema-api/local-state at line 16 src\cljs\de\sveri\stockfighter\overview.cljs
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.656 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  resources/public/js/compiled/out/goog/deps.js
+notifying browser that file changed:  resources/public/js/compiled/out/cljs_deps.js
+notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 4.553 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.577 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.578 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.499 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.528 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.562 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.52 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\level.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.971 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\level.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.797 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\ticker.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.557 seconds.[0m

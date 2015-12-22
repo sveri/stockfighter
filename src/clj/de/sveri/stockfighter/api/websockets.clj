@@ -6,15 +6,14 @@
             [de.sveri.stockfighter.api.config :as conf]
             [de.sveri.stockfighter.schema-api :as schem]
             [de.sveri.stockfighter.api.api :as api]
-            [de.sveri.stockfighter.service.helper :as h]))
+            [de.sveri.stockfighter.service.helper :as h]
+            [de.sveri.stockfighter.api.lvl-two :as lvl-two]))
 
 (def quotes-socket (atom {}))
 (def executions-socket (atom {}))
 
 (def quote-history (atom {}))
 (def execution-history (atom {}))
-
-(def autobuy-state (atom {}))
 
 
 
@@ -23,28 +22,11 @@
     (f/parse schem/api-time-format value)
     value))
 
-(s/defn enable-autobuy :- s/Any [venue :- s/Str stock :- s/Str account :- s/Str order :- schem/new-batch-order]
-  (println "enabling autobuy for: " venue stock account)
-  (swap! autobuy-state assoc (h/->unique-key venue stock account) order))
-
-(s/defn disable-autobuy :- s/Any [vsa :- schem/vsa]
-  (println "disabling autobuy for: " vsa)
-  (swap! autobuy-state dissoc (h/->unique-key vsa)))
-
-(s/defn autobuy :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa quote :- s/Any]
-  (let [key (h/->unique-key venue stock account)]
-    (when-let [autobuy-data (key @autobuy-state)]
-      ;(clojure.pprint/pprint quote)
-      (when (and (:bid quote) (<= (:bid quote) (:price autobuy-data)))
-        (api/new-order autobuy-data)))
-    (swap! quote-history update key conj quote)))
-
 (s/defn parse-quote :- s/Any
   [vsa :- schem/vsa quote-response :- s/Str]
   (let [quote (json/read-str quote-response :key-fn keyword :value-fn api->date)]
     (if (:ok quote)
-      (autobuy vsa (:quote quote))
-      ;(clojure.pprint/pprint (:quote quote))
+      (lvl-two/autobuy vsa (:quote quote) quote-history)
       (println "something else happened: " quote-response))))
 
 (s/defn connect-quotes :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa]
@@ -54,7 +36,7 @@
            (str conf/ws-uri account "/venues/" venue "/tickertape/stocks/" stock)
            :on-receive #(parse-quote vsa %)
            :on-close (fn [a b] (println a " - " b " - " (format "Closed quote websocket for %s?" (str venue stock account)))
-                       (when (= 1006 a) (connect-quotes vsa)))
+                       (when (and (h/restart-api-websockets?) (= 1006 a)) (connect-quotes vsa)))
            :on-error #(println (format "Some error occured for: %s - %s - %s: \n %s" venue stock account (.printStackTrace %))))))
 
 
@@ -72,13 +54,12 @@
            (str conf/ws-uri account "/venues/" venue "/executions/stocks/" stock)
            :on-receive #(parse-execution venue stock account %)
            :on-close (fn [a b] (println a " - " b " - " (format "Closed execution websocket for %s?" (str venue stock account)))
-                       (when (= 1006 a) (connect-executions vsa)))
+                       (when (and (h/restart-api-websockets?) (= 1006 a)) (connect-executions vsa)))
            :on-error #(println (format "Some error occured for: %s - %s - %s: \n %s" venue stock account (.printStackTrace %))))))
 
 (s/defn close-sockets-by-key :- s/Any [{:keys [venue stock account]} :- schem/vsa]
   (when-let [socket (get @quotes-socket (h/->unique-key venue stock account))] (ws/close socket))
-  ;(when-let [socket (get @executions-socket (h/->unique-key venue stock account))] (ws/close socket))
-  )
+  (when-let [socket (get @executions-socket (h/->unique-key venue stock account))] (ws/close socket)))
 
 (defn close-socket [s] (ws/close s))
 

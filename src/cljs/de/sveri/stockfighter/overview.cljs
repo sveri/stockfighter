@@ -12,10 +12,10 @@
             [de.sveri.stockfighter.level :as lp]
             [de.sveri.stockfighter.executions :as exec]))
 
-(def local-state (alan/local-storage (atom {}) :cljs-storage))
+(def local-state (alan/local-storage (atom {:vsa {:venue "" :stock "" :account ""}}) :cljs-storage))
 (add-watch local-state :validator-watch (fn [_ _ _ new] (s/validate schem/local-state new)))
 
-(def state (atom {:vsa       {:venue "" :stock "" :account ""}
+(def state (atom {
                   :cur-level "sell_side"
                   :new-order {:price     (js/parseInt 5000) :qty (js/parseInt 100) :target-qty 100 :direction "buy"
                               :orderType "limit"}}))
@@ -56,9 +56,9 @@
     [:div
      [lp/level-page local-state state]
      [:hr]
-     [no/new-order-page state]
+     [no/new-order-page local-state state]
      [:hr]
-     [tp/ticker-page state]
+     [tp/ticker-page local-state state]
      [:hr]
      [exec/exec-page state]
      ]))

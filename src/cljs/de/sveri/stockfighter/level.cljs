@@ -3,20 +3,19 @@
             [ajax.core :refer [POST GET]]
             [de.sveri.stockfighter.comm-helper :as comm-h]))
 
-(defn game-started [resp local-state state]
+(defn game-started [resp local-state]
   (println "size of venues: " (count (:venues resp)))
   (println "size of tickers: " (count (:tickers resp)))
-  (swap! state assoc-in [:vsa :venue] (first (:venues resp)))
-  (swap! state assoc-in [:vsa :stock] (first (:tickers resp)))
-  (swap! state assoc-in [:vsa :account] (:account resp))
-  (swap! local-state assoc :instanceId (:instanceId resp))
-  )
+  (swap! local-state assoc :vsa {:venue (first (:venues resp))
+                                 :stock (first (:tickers resp))
+                                 :account (:account resp)})
+  (swap! local-state assoc :instanceId (:instanceId resp)))
 
 (defn start-game [local-state state]
   (POST "/level/start"
         {:params        {:name (:cur-level @state)}
          :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
-         :handler       #(game-started % local-state state)
+         :handler       #(game-started % local-state)
          :error-handler (fn [e] (println "some error occured: " e))}))
 
 (defn game-info [local-state state]
@@ -43,9 +42,9 @@
         [:td [:span (with-margin {} 20)] (str "Finished: " (get-in @state [:game-state :done]))]
         [:td [:span (with-margin {} 20)] (str "Day " (get-in @state [:game-info :details :tradingDay])
                                               " of " (get-in @state [:game-info :details :endOfTheWorldDay]))]
-        [:td [:span (with-margin {} 20)] (str "Venue: " (get-in @state [:vsa :venue]))]
-        [:td [:span (with-margin {} 20)] (str "Stock: " (get-in @state [:vsa :stock]))]
-        [:td [:span (with-margin {} 20)] (str "Account: " (get-in @state [:vsa :account]))]
+        [:td [:span (with-margin {} 20)] (str "Venue: " (get-in @local-state [:vsa :venue]))]
+        [:td [:span (with-margin {} 20)] (str "Stock: " (get-in @local-state [:vsa :stock]))]
+        [:td [:span (with-margin {} 20)] (str "Account: " (get-in @local-state [:vsa :account]))]
         [:td
          [:span (with-margin {} 20)]
          (str "Target Price: " (get-in @state [:game-info :flash]))]

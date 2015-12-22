@@ -12,7 +12,8 @@
             [de.sveri.stockfighter.service.jobs :as qh]
             [de.sveri.stockfighter.service.jobs :as jobs]
             [de.sveri.stockfighter.service.helper :as h]
-            [de.sveri.stockfighter.api.orders :as o]))
+            [de.sveri.stockfighter.api.orders :as o]
+            [de.sveri.stockfighter.api.lvl-two :as lvl-two]))
 
 (defmulti fail-or-result (fn [result _] (contains? result :error)))
 (defmethod fail-or-result false [r path] (response (get-in r path)))
@@ -33,25 +34,27 @@
   (o/better-new-order order)
   (response {:ok "ok"}))
 
-(s/defn start-quote-ticker :- s/Any [vsa :- schem/vsa]
-  (ws/connect-quotes vsa)
-  ;(qh/start-pass-averages vsa ws-comp/ws)
-  (response {:ok "ok"}))
-
-(s/defn stop-quote-ticker :- s/Any [vsa :- schem/vsa]
-  (ws/close-sockets-by-key vsa)
-  (qh/delete-pass-averages vsa)
-  (response {:ok "ok"}))
+;(s/defn start-quote-ticker :- s/Any [vsa :- schem/vsa]
+;  (ws/connect-quotes vsa)
+;  ;(qh/start-pass-averages vsa ws-comp/ws)
+;  (response {:ok "ok"}))
+;
+;(s/defn stop-quote-ticker :- s/Any [vsa :- schem/vsa]
+;  (ws/close-sockets-by-key vsa)
+;  (qh/delete-pass-averages vsa)
+;  (response {:ok "ok"}))
 
 (s/defn start-ticker :- s/Any [vsa :- schem/vsa websockets :- s/Any]
-  ;(ws/connect-quotes vsa)
-  ;(ws/connect-executions vsa)
-  ;(qh/start-pass-averages vsa ws-comp/ws)
-  ;(qh/start-pass-executions vsa ws-comp/ws)
+  (ws/connect-quotes vsa)
+  (ws/connect-executions vsa)
+  (qh/start-pass-averages vsa websockets)
+  (qh/start-pass-executions vsa websockets)
   (jobs/start-game-info (get-in @h/common-state [:game-info :instanceId]) vsa websockets)
+  (h/restart-api-websockets true)
   (response {:ok "ok"}))
 
 (s/defn stop-ticker :- s/Any [vsa :- schem/vsa]
+  (h/restart-api-websockets false)
   (ws/close-sockets-by-key vsa)
   (qh/delete-pass-averages vsa)
   (jobs/delete-game-info vsa)
@@ -60,12 +63,12 @@
 
 (s/defn new-autobuy :- s/Any
   [{:keys [venue stock account] :as order} :- schem/new-batch-order]
-  (ws/enable-autobuy venue stock account order)
+  (lvl-two/enable-autobuy venue stock account order)
   (response {:ok "ok"}))
 
 (s/defn new-autobuy-stop :- s/Any
   [vsa :- schem/vsa]
-  (ws/disable-autobuy vsa)
+  (lvl-two/disable-autobuy vsa)
   (response {:ok "ok"}))
 
 (defn stockfighter-routes [{:keys [websockets]}]
@@ -75,8 +78,8 @@
           (POST "/stockfighter/orders" req (new-order (:params req)))
           (POST "/stockfighter/autobuy" req (new-autobuy (:params req)))
           (POST "/stockfighter/autobuy/stop" req (new-autobuy-stop (:params req)))
-          (POST "/stockfighter/quoteticker/start" req (start-quote-ticker (:params req)))
-          (POST "/stockfighter/quoteticker/stop" req (stop-quote-ticker (:params req)))
+          ;(POST "/stockfighter/quoteticker/start" req (start-quote-ticker (:params req)))
+          ;(POST "/stockfighter/quoteticker/stop" req (stop-quote-ticker (:params req)))
           (POST "/stockfighter/ticker/start" req (start-ticker (:params req) websockets))
           (POST "/stockfighter/ticker/stop" req (stop-ticker (:params req)))))
 

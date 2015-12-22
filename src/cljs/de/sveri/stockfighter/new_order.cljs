@@ -4,35 +4,33 @@
             [de.sveri.stockfighter.schema-api :as schem]
             [de.sveri.stockfighter.helper :as h]))
 
-(s/defn ->new-order :- schem/new-batch-order [state :- schem/state]
-        (let [vsa (:vsa @state)]
-          (merge {:venue   (:venue vsa)
-                  :stock   (:stock vsa)
-                  :account (:account vsa)}
+(s/defn ->new-order :- schem/new-batch-order [local-state :- schem/local-state state :- schem/state]
+        (let [vsa (:vsa @local-state)]
+          (merge vsa
                  (:new-order @state))))
 
-(defn new-order [state]
+(defn new-order [local-state state]
   (POST "/stockfighter/orders"
-        {:params        (->new-order state)
+        {:params        (->new-order local-state state)
          :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
          :handler       (fn [e] (println e))
          :error-handler (fn [e] (println "some error occured: " e))}))
 
-(defn new-autobuy [state]
+(defn new-autobuy [local-state state]
   (POST "/stockfighter/autobuy"
-        {:params        (->new-order state)
+        {:params        (->new-order local-state state)
          :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
          :handler       (fn [e] (println e))
          :error-handler (fn [e] (println "some error occured: " e))}))
 
-(defn new-autobuy-stop [state]
+(defn new-autobuy-stop [local-state]
   (POST "/stockfighter/autobuy/stop"
-        {:params        (:vsa @state)
+        {:params        (:vsa @local-state)
          :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
          :handler       (fn [e] (println e))
          :error-handler (fn [e] (println "some error occured: " e))}))
 
-(defn new-order-page [state]
+(defn new-order-page [local-state state]
   [:div
    [:h4 "Place Order"]
    [:div.row
@@ -56,9 +54,9 @@
                         [:option {:value "fill-or-kill"} "fill-or-kill"]
                         [:option {:value "immediate-or-cancel"} "immediate-or-cancel"]])]
     [:div.col-md-1
-     (h/wrap-with-form "" [:button.btn.btn-danger {:style {:margin-left "10px"} :on-click #(new-order state)} "Place Order"])]]
+     (h/wrap-with-form "" [:button.btn.btn-danger {:style {:margin-left "10px"} :on-click #(new-order local-state state)} "Place Order"])]]
    [:div.row
     [:div.col-md-2
-     (h/wrap-with-form "" [:button.btn.btn-danger {:style {:margin-left "10px"} :on-click #(new-autobuy state)} "Auto Buy to Target"])]
+     (h/wrap-with-form "" [:button.btn.btn-danger {:style {:margin-left "10px"} :on-click #(new-autobuy local-state state)} "Auto Buy to Target"])]
     [:div.col-md-2
-     (h/wrap-with-form "" [:button.btn.btn-danger {:style {:margin-left "10px"} :on-click #(new-autobuy-stop state)} "Stop Auto Buy"])]]])
+     (h/wrap-with-form "" [:button.btn.btn-danger {:style {:margin-left "10px"} :on-click #(new-autobuy-stop local-state)} "Stop Auto Buy"])]]])

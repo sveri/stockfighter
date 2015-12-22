@@ -32,12 +32,12 @@
 ;(def quote-stream {:ok s/Bool :quote quote})
 (def quote-stream {:ok s/Bool :quote s/Str})
 
-(def execution {:ok s/Bool :account s/Str :venue s/Str :stock s/Str :order order :standingId s/Num :incomingId s/Num
+(def execution {:ok    s/Bool :account s/Str :venue s/Str :stock s/Str :order order :standingId s/Num :incomingId s/Num
                 :price s/Num :filled s/Num :filledAt s/Inst :standingComplete s/Bool :incomingComplete s/Bool})
 (def execution-stream {:total-filled (s/cond-pre s/Num) :filled-avg (s/cond-pre s/Num)})
 ;(def execution-stream {:total-filled (s/cond-pre nil s/Num) :filled-avg (s/cond-pre nil s/Num)})
 
-(def autobuy {s/Keyword new-batch-order })
+(def autobuy {s/Keyword new-batch-order})
 
 
 ;;;;;; gm ;;;;;;
@@ -46,7 +46,7 @@
 (def game-state {:ok s/Bool :done s/Bool :id s/Num :state s/Str :details {:endOfTheWorldDay s/Num :tradingDay s/Num}})
 
 (def game-info {:ok                       s/Bool :done s/Bool :id s/Num :state s/Str
-                (s/optional-key :flash)   {(s/optional-key :info) s/Str
+                (s/optional-key :flash)   {(s/optional-key :info)    s/Str
                                            (s/optional-key :warning) s/Str}
                 (s/optional-key :details) {:endOfTheWorldDay s/Num :tradingDay s/Num}})
 
@@ -55,8 +55,9 @@
 ;; general
 (def response-error {:status s/Num :error s/Str})
 (def ok-response {:status (s/eq 200) :headers s/Any :body {:ok s/Str}})
-(def common-state {:game-info levels-response
-                   :game-state game-state})
+(def common-state {:game-info          levels-response
+                   :game-state         game-state
+                   :restart-websockets s/Bool})
 
 
 
@@ -64,18 +65,18 @@
 ; cljs
 (def ticker {:bid-avg s/Num :bid-avg-last-10 s/Num :bid-avg-last-100 s/Num})
 
-(def state {(s/optional-key :vsa)                       vsa
+(def state {
             (s/optional-key :orders)     orders
             (s/optional-key :ticker)     ticker
             (s/optional-key :game-state) game-state
             (s/optional-key :executions) execution-stream
-            (s/optional-key :game-info) game-info
-            (s/optional-key :cur-level) s/Str
+            (s/optional-key :game-info)  game-info
+            (s/optional-key :cur-level)  s/Str
 
-             (s/optional-key :new-order) {(s/optional-key :price)      s/Num (s/optional-key :qty) s/Num
+            (s/optional-key :new-order)  {(s/optional-key :price)      s/Num (s/optional-key :qty) s/Num
                                           (s/optional-key :target-qty) s/Num
                                           (s/optional-key :direction)  direction
                                           (s/optional-key :orderType)  order-type}
             })
 
-(def local-state {(s/optional-key :instanceId) s/Num})
+(def local-state {(s/optional-key :instanceId) s/Num (s/optional-key :vsa) vsa})
