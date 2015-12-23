@@ -26,7 +26,6 @@
   [vsa :- schem/vsa quote-response :- s/Str]
   (let [quote (json/read-str quote-response :key-fn keyword :value-fn api->date)]
     (if (:ok quote)
-      ;(lvl-two/autobuy vsa (:quote quote) quote-history)
       (bots/start-bot vsa (:quote quote) quote-history)
       (println "something else happened: " quote-response))))
 
