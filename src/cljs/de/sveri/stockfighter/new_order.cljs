@@ -30,15 +30,17 @@
          :handler       (fn [e] (println e))
          :error-handler (fn [e] (println "some error occured: " e))}))
 
-(defn start-lvl-three []
-  (POST "/stockfighter/lvl-three/start"
-        {:headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
+(defn start-lvl-three [local-state]
+  (POST "/level/three/start"
+        {:params        (:vsa @local-state)
+         :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
          :handler       (fn [e] (println e))
          :error-handler (fn [e] (println "some error occured: " e))}))
 
-(defn stop-lvl-three []
-  (POST "/stockfighter/lvl-three/stop"
-        {:headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
+(defn stop-lvl-three [local-state]
+  (POST "/level/three/stop"
+        {:params        (:vsa @local-state)
+         :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
          :handler       (fn [e] (println e))
          :error-handler (fn [e] (println "some error occured: " e))}))
 
@@ -75,6 +77,6 @@
     [:div.col-md-2 (h/wrap-with-form "" [:button.btn.btn-danger {:style    {:margin-left "10px"}
                                                                  :on-click #(new-autobuy-stop local-state)} "Stop Auto Buy"])]
     [:div.col-md-2 (h/wrap-with-form "" [:button.btn.btn-danger {:style    {:margin-left "10px"}
-                                                                 :on-click #(start-lvl-three)} "Start Lvl 3"])]
+                                                                 :on-click #(start-lvl-three local-state)} "Start Lvl 3"])]
     [:div.col-md-2 (h/wrap-with-form "" [:button.btn.btn-danger {:style    {:margin-left "10px"}
-                                                                 :on-click #(stop-lvl-three)} "Stop Lvl 3"])]]])
+                                                                 :on-click #(stop-lvl-three local-state)} "Stop Lvl 3"])]]])
