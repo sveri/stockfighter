@@ -1823,3 +1823,6 @@ notifying browser that file changed:  out\de\sveri\stockfighter\new_order.js
 [0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
 notifying browser that file changed:  out\de\sveri\stockfighter\new_order.js
 [32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.85 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 1.013 seconds.[0m

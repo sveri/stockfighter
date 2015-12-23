@@ -25,6 +25,6 @@
     (when-let [autobuy-data (key @autobuy-state)]
       (cond
         (= lvl "chock_a_block") (two/autobuy autobuy-data quote)
-        (= lvl "sell_side") (three/start-lvl-three vsa autobuy-data)))
+        (= lvl "sell_side") (three/start-lvl-three vsa quote-history)))
     (swap! quote-history update key conj quote)))
 

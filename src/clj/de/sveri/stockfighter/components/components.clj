@@ -10,11 +10,13 @@
     [de.sveri.stockfighter.components.locale :as l]
     [de.sveri.stockfighter.components.websockets :as ws]
     [de.sveri.stockfighter.components.ws-to-api :as ws-to-api]
-    [de.sveri.stockfighter.components.scheduler :as s]))
+    [de.sveri.stockfighter.components.scheduler :as s]
+    [de.sveri.stockfighter.components.atom-storage :as as]))
 
 
 (defn dev-system []
   (component/system-map
+    :atom-storgae (as/new-atom-storage)
     :locale (l/new-locale)
     :websockets (ws/new-websockets)
     :websockets-to-api (ws-to-api/new-websockets-to-api)
@@ -27,6 +29,7 @@
 
 (defn prod-system []
   (component/system-map
+    :atom-storgae (as/new-atom-storage)
     :locale (l/new-locale)
     :websockets (ws/new-websockets)
     :websockets-to-api (ws-to-api/new-websockets-to-api)

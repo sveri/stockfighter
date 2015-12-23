@@ -31,7 +31,7 @@
 
 (s/defn new-order :- s/Any
   [order :- schem/new-batch-order]
-  (o/better-new-order order)
+  ;(o/better-new-order order)
   (response {:ok "ok"}))
 
 ;(s/defn start-quote-ticker :- s/Any [vsa :- schem/vsa]

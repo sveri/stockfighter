@@ -14,9 +14,9 @@
   [{:keys [venue stock account]} :- schem/vsa send-fn :- s/Any conn-uids :- s/Any]
   (doseq [uid (:any @conn-uids)]
     (send-fn uid [:quotes/averages
-                  {:bid-avg          (calc/get-avg-bid venue stock account api-ws/quote-history)
-                   :bid-avg-last-10  (calc/get-avg-bid venue stock account api-ws/quote-history 10)
-                   :bid-avg-last-100 (calc/get-avg-bid venue stock account api-ws/quote-history 100)}])))
+                  {:bid-avg          (or (calc/get-avg-bid venue stock account api-ws/quote-history) 0)
+                   :bid-avg-last-10  (or (calc/get-avg-bid venue stock account api-ws/quote-history 10) 0)
+                   :bid-avg-last-100 (or (calc/get-avg-bid venue stock account api-ws/quote-history 100) 0)}])))
 
 (s/defn start-pass-averages :- s/Any [vsa :- schem/vsa {:keys [send-fn connected-uids]} :- s/Any]
   (let [key (keyword (str "quot-avg-" (h/->unique-key vsa)))]
