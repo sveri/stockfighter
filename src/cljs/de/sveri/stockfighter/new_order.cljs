@@ -5,9 +5,7 @@
             [de.sveri.stockfighter.helper :as h]))
 
 (s/defn ->new-order :- schem/new-batch-order [local-state :- schem/local-state state :- schem/state]
-        (let [vsa (:vsa @local-state)]
-          (merge vsa
-                 (:new-order @state))))
+        (merge (:vsa @local-state) (:new-order @state)))
 
 (defn new-order [local-state state]
   (POST "/stockfighter/orders"
@@ -17,14 +15,14 @@
          :error-handler (fn [e] (println "some error occured: " e))}))
 
 (defn new-autobuy [local-state state]
-  (POST "/stockfighter/autobuy"
-        {:params        (->new-order local-state state)
+  (POST "/stockfighter/bots/start"
+        {:params        (merge {:level (:cur-level @state)} (->new-order local-state state))
          :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
          :handler       (fn [e] (println e))
          :error-handler (fn [e] (println "some error occured: " e))}))
 
 (defn new-autobuy-stop [local-state]
-  (POST "/stockfighter/autobuy/stop"
+  (POST "/stockfighter/bots/stop"
         {:params        (:vsa @local-state)
          :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
          :handler       (fn [e] (println e))
@@ -73,10 +71,11 @@
    [:div.row
     [:div.col-md-2
      (h/wrap-with-form "" [:button.btn.btn-danger {:style    {:margin-left "10px"}
-                                                   :on-click #(new-autobuy local-state state)} "Auto Buy to Target"])]
+                                                   :on-click #(new-autobuy local-state state)} "Start Bot"])]
     [:div.col-md-2 (h/wrap-with-form "" [:button.btn.btn-danger {:style    {:margin-left "10px"}
-                                                                 :on-click #(new-autobuy-stop local-state)} "Stop Auto Buy"])]
-    [:div.col-md-2 (h/wrap-with-form "" [:button.btn.btn-danger {:style    {:margin-left "10px"}
-                                                                 :on-click #(start-lvl-three local-state)} "Start Lvl 3"])]
-    [:div.col-md-2 (h/wrap-with-form "" [:button.btn.btn-danger {:style    {:margin-left "10px"}
-                                                                 :on-click #(stop-lvl-three local-state)} "Stop Lvl 3"])]]])
+                                                                 :on-click #(new-autobuy-stop local-state)} "Stop Bot"])]
+    ;[:div.col-md-2 (h/wrap-with-form "" [:button.btn.btn-danger {:style    {:margin-left "10px"}
+    ;                                                             :on-click #(start-lvl-three local-state)} "Start Lvl 3"])]
+    ;[:div.col-md-2 (h/wrap-with-form "" [:button.btn.btn-danger {:style    {:margin-left "10px"}
+    ;                                                             :on-click #(stop-lvl-three local-state)} "Stop Lvl 3"])]
+    ]])

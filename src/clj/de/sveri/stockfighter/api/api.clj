@@ -33,7 +33,7 @@
   [venue :- s/Str stock :- s/Str]
   (parse-response (client/get (str base-uri "venues/" venue "/stocks/" stock) (with-key-and-defaults))))
 
-(s/defn new-order :- s/Any [order :- schem/new-batch-order]
+(s/defn new-order :- s/Any [order :- schem/new-order]
   (client/post (str base-uri "venues/" (:venue order) "/stocks/" (:stock order) "/orders")
                (with-key-and-defaults {:body (json/write-str order)})))
 

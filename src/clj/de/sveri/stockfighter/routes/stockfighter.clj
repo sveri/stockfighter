@@ -13,7 +13,7 @@
             [de.sveri.stockfighter.service.jobs :as jobs]
             [de.sveri.stockfighter.service.helper :as h]
             [de.sveri.stockfighter.api.orders :as o]
-            [de.sveri.stockfighter.api.lvl-two :as lvl-two]))
+            [de.sveri.stockfighter.api.bots :as bots]))
 
 (defmulti fail-or-result (fn [result _] (contains? result :error)))
 (defmethod fail-or-result false [r path] (response (get-in r path)))
@@ -61,14 +61,14 @@
   (jobs/delete-executions vsa)
   (response {:ok "ok"}))
 
-(s/defn new-autobuy :- s/Any
+(s/defn enable-bots :- s/Any
   [{:keys [venue stock account] :as order} :- schem/new-batch-order]
-  (lvl-two/enable-autobuy venue stock account order)
+  (bots/enable-autobuy venue stock account order (:level order))
   (response {:ok "ok"}))
 
-(s/defn new-autobuy-stop :- s/Any
+(s/defn stop-bots :- s/Any
   [vsa :- schem/vsa]
-  (lvl-two/disable-autobuy vsa)
+  (bots/disable-autobuy vsa)
   (response {:ok "ok"}))
 
 (defn stockfighter-routes [{:keys [websockets]}]
@@ -76,8 +76,8 @@
           (GET "/stockfighter/orders/venue/:venue/stock/:stock/account/:account"
                [venue stock account] (orders venue stock account))
           (POST "/stockfighter/orders" req (new-order (:params req)))
-          (POST "/stockfighter/autobuy" req (new-autobuy (:params req)))
-          (POST "/stockfighter/autobuy/stop" req (new-autobuy-stop (:params req)))
+          (POST "/stockfighter/bots/start" req (enable-bots (:params req)))
+          (POST "/stockfighter/bots/stop" req (stop-bots (:params req)))
           ;(POST "/stockfighter/quoteticker/start" req (start-quote-ticker (:params req)))
           ;(POST "/stockfighter/quoteticker/stop" req (stop-quote-ticker (:params req)))
           (POST "/stockfighter/ticker/start" req (start-ticker (:params req) websockets))

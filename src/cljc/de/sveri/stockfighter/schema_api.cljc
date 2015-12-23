@@ -5,6 +5,21 @@
 
 #?(:clj (def api-time-format (f/formatters :date-time)))
 
+
+;;;;;; gm ;;;;;;
+(def levels (s/cond-pre (s/eq "chock_a_block") (s/eq "sell_side")))
+(def levels-response {:account s/Str :instanceId s/Num :instructions s/Any :ok s/Bool :secondsPerTradingDay s/Num
+                      :tickers [s/Str] :venues [s/Str] (s/optional-key :balances) s/Any})
+(def game-state {:ok s/Bool :done s/Bool :id s/Num :state s/Str :details {:endOfTheWorldDay s/Num :tradingDay s/Num}})
+
+(def game-info {:ok                       s/Bool :done s/Bool :id s/Num :state s/Str
+                (s/optional-key :flash)   {(s/optional-key :info)    s/Str
+                                           (s/optional-key :warning) s/Str}
+                (s/optional-key :details) {:endOfTheWorldDay s/Num :tradingDay s/Num}})
+
+
+;;;; stock
+
 (def stock {:name s/Str :symbol s/Str})
 (def stocks {:symbols [stock]})
 
@@ -25,7 +40,7 @@
 (def new-order {:account   s/Str :venue s/Str :stock s/Str :price s/Num :qty s/Num :direction direction
                 :orderType order-type})
 
-(def new-batch-order (merge new-order {:target-qty s/Num}))
+(def new-batch-order (merge new-order {:target-qty s/Num :level levels}))
 
 (def quote {:symbol   s/Str :venue s/Str :bid s/Num :ask s/Num :bidSize s/Num :askSize s/Num :bidDepth s/Num
             :askDepth s/Num :last s/Num :lastSize s/Num :lastTrade s/Inst :quoteTime s/Inst})
@@ -40,15 +55,6 @@
 (def autobuy {s/Keyword new-batch-order})
 
 
-;;;;;; gm ;;;;;;
-(def levels-response {:account s/Str :instanceId s/Num :instructions s/Any :ok s/Bool :secondsPerTradingDay s/Num
-                      :tickers [s/Str] :venues [s/Str] (s/optional-key :balances) s/Any})
-(def game-state {:ok s/Bool :done s/Bool :id s/Num :state s/Str :details {:endOfTheWorldDay s/Num :tradingDay s/Num}})
-
-(def game-info {:ok                       s/Bool :done s/Bool :id s/Num :state s/Str
-                (s/optional-key :flash)   {(s/optional-key :info)    s/Str
-                                           (s/optional-key :warning) s/Str}
-                (s/optional-key :details) {:endOfTheWorldDay s/Num :tradingDay s/Num}})
 
 
 
@@ -66,6 +72,7 @@
 (def ticker {:bid-avg s/Num :bid-avg-last-10 s/Num :bid-avg-last-100 s/Num})
 
 (def state {
+            ;(s/optional-key :level)      levels
             (s/optional-key :orders)     orders
             (s/optional-key :ticker)     ticker
             (s/optional-key :game-state) game-state

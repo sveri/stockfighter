@@ -5,21 +5,6 @@
             [de.sveri.stockfighter.api.api :as api]))
 
 
-
-(def autobuy-state (atom {}))
-
-(s/defn enable-autobuy :- s/Any [venue :- s/Str stock :- s/Str account :- s/Str order :- schem/new-batch-order]
-  (println "enabling autobuy for: " venue stock account)
-  (swap! autobuy-state assoc (h/->unique-key venue stock account) order))
-
-(s/defn disable-autobuy :- s/Any [vsa :- schem/vsa]
-  (println "disabling autobuy for: " vsa)
-  (swap! autobuy-state dissoc (h/->unique-key vsa)))
-
-(s/defn autobuy :- s/Any [{:keys [venue stock account]} :- schem/vsa quote :- s/Any quote-history :- s/Any]
-  (let [key (h/->unique-key venue stock account)]
-    (when-let [autobuy-data (key @autobuy-state)]
-      (println "autobuy: " key)
-      (when (and (:bid quote) (<= (:bid quote) (:price autobuy-data)))
-        (api/new-order autobuy-data)))
-    (swap! quote-history update key conj quote)))
+(s/defn autobuy :- s/Any [autobuy-data :- schem/new-batch-order quote :- s/Any]
+  (when (and (:bid quote) (<= (:bid quote) (:price autobuy-data)))
+    (api/new-order (dissoc autobuy-data :level :target-qty))))

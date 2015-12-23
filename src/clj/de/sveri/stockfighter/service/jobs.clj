@@ -2,7 +2,8 @@
   (:require
     ;[de.sveri.stockfighter.components.quartzite :refer [quartzite]]
     ;        [de.sveri.stockfighter.components.websockets :refer [ws]]
-            [de.sveri.stockfighter.api.websockets :as api-ws]
+    [de.sveri.stockfighter.api.websockets :as api-ws]
+            [de.sveri.stockfighter.api.calculations :as calc]
             [de.sveri.stockfighter.api.api :as stock-api]
             [schema.core :as s]
             [de.sveri.stockfighter.schema-api :as schem]
@@ -13,9 +14,9 @@
   [{:keys [venue stock account]} :- schem/vsa send-fn :- s/Any conn-uids :- s/Any]
   (doseq [uid (:any @conn-uids)]
     (send-fn uid [:quotes/averages
-                  {:bid-avg          (api-ws/get-avg-bid venue stock account)
-                   :bid-avg-last-10  (api-ws/get-avg-bid venue stock account 10)
-                   :bid-avg-last-100 (api-ws/get-avg-bid venue stock account 100)}])))
+                  {:bid-avg          (calc/get-avg-bid venue stock account api-ws/quote-history)
+                   :bid-avg-last-10  (calc/get-avg-bid venue stock account api-ws/quote-history 10)
+                   :bid-avg-last-100 (calc/get-avg-bid venue stock account api-ws/quote-history 100)}])))
 
 (s/defn start-pass-averages :- s/Any [vsa :- schem/vsa {:keys [send-fn connected-uids]} :- s/Any]
   (let [key (keyword (str "quot-avg-" (h/->unique-key vsa)))]
@@ -25,12 +26,10 @@
   (stop (id (keyword (str "quot-avg-" (h/->unique-key vsa))))))
 
 
-
-
 (s/defn start-pass-executions* :- s/Any
   [{:keys [venue stock account]} :- schem/vsa send-fn :- s/Any conn-uids :- s/Any]
   (doseq [uid (:any @conn-uids)]
-    (send-fn uid [:executions/last (api-ws/->accumulated-executions venue stock account)])))
+    (send-fn uid [:executions/last (calc/->accumulated-executions venue stock account api-ws/execution-history)])))
 
 (s/defn start-pass-executions :- s/Any [vsa :- schem/vsa {:keys [send-fn connected-uids]} :- s/Any]
   (let [key (keyword (str "executions" (h/->unique-key vsa)))]
@@ -38,8 +37,6 @@
 
 (defn delete-executions [vsa]
   (stop (id (keyword (str "executions" (h/->unique-key vsa))))))
-
-
 
 
 (s/defn game-info* :- s/Any
