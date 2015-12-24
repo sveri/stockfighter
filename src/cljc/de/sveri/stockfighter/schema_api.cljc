@@ -65,6 +65,7 @@
                    :game-state         game-state
                    :restart-websockets s/Bool})
 
+(def booking {:nav s/Num :position s/Num :cash s/Num})
 
 
 

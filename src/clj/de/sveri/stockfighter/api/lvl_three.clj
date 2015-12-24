@@ -8,20 +8,22 @@
 
 (def sell-me (atom []))
 
-(s/defn bought-something? :- s/Bool [order :- schem/order] (< 0 (:totalFilled order)))
+(def booking (atom {:nav 0 :position 0 :cash 0}))
 
-(def fooo (atom [1 2 3 4]))
+(s/defn bought-sold-something? :- s/Bool [order :- schem/order] (< 0 (:totalFilled order)))
 
-;(defn sell-lower-thingy [a]
-;  (swap! a
-;         (fn [v] (mapv #(if) v))))
+(s/defn update-booking :- s/Any [order-response :- schem/order]
+  (let [fills (:fills order-response)]
+    (doseq [fill fills]
+      (let [add-min? (if (= (:direction fill) "buy") + -)]
+        (swap! booking (fn [b-old] (assoc b-old :position (add-min? (:totalFilled fill) (:position b-old)))))))))
 
 (s/defn generate-sell-order :- [schem/new-order] [venue :- s/Str stock :- s/Str account :- s/Str order-response :- schem/order]
   (mapv (fn [fill]
-         {:account   account :venue venue :stock stock :price (int (+ (:price fill) (* 0.01 (:price fill))))
-          :qty       (:qty fill) :direction "sell"
-          :orderType "immediate-or-cancel"})
-       (:fills order-response)))
+          {:account   account :venue venue :stock stock :price (int (+ (:price fill) (* 0.01 (:price fill))))
+           :qty       (:qty fill) :direction "sell"
+           :orderType "immediate-or-cancel"})
+        (:fills order-response)))
 
 (defn buy-a-thing [venue stock account quote-history]
   (let [buy-price (int (calc/get-avg-bid venue stock account quote-history 5))
@@ -29,13 +31,16 @@
                    :orderType "immediate-or-cancel"}]
     (println "trying to buy: " buy-order)
     (let [order-response (api/new-order buy-order)]
-      (when (bought-something? order-response)
-        (reset! sell-me (generate-sell-order venue stock account order-response))
+      (when (bought-sold-something? order-response)
+        (update-booking order-response)
+        (swap! sell-me conj (generate-sell-order venue stock account order-response))
         (println "bought " buy-order)))))
 
 (defn sell-a-thing []
   (let [sell-order (first @sell-me)
         sell-response (api/new-order sell-order)]
+    (when (bought-sold-something? sell-response)
+      (update-booking sell-response))
     (println "trying to sell: " sell-order)
     (println sell-response)
     ;(if (= (:qty sell-order) (:totalFilled sell-response))
@@ -48,6 +53,6 @@
 (s/defn start-lvl-three :- s/Any
   [{:keys [venue stock account] :as vsa} :- schem/vsa quote-history :- s/Any]
   (if (empty? @sell-me)
-  ;(if (< (count @sell-me) 3)
+    ;(if (< (count @sell-me) 3)
     (buy-a-thing venue stock account quote-history)
     (sell-a-thing)))
