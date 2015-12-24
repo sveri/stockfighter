@@ -37,7 +37,8 @@
            :on-receive #(parse-quote vsa %)
            :on-close (fn [a b] (println a " - " b " - " (format "Closed quote websocket for %s?" (str venue stock account)))
                        (when (and (h/restart-api-websockets?) (= 1006 a)) (connect-quotes vsa)))
-           :on-error #(println (format "Some error occured for: %s - %s - %s: \n %s" venue stock account (.printStackTrace %))))))
+           :on-error #(do (println (format "Some error occured for: %s - %s - %s:" venue stock account ))
+                         (.printStackTrace %)))))
 
 
 (s/defn parse-execution :- s/Any

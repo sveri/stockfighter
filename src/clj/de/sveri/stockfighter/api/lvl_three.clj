@@ -8,6 +8,7 @@
 
 (def sell-me (atom []))
 
+; nav = cash + (shares * share_price)
 (def booking (atom {:nav 0 :position 0 :cash 0}))
 
 (s/defn bought-sold-something? :- s/Bool [order :- schem/order] (< 0 (:totalFilled order)))
@@ -15,8 +16,11 @@
 (s/defn update-booking :- s/Any [order-response :- schem/order]
   (let [fills (:fills order-response)]
     (doseq [fill fills]
-      (let [add-min? (if (= (:direction fill) "buy") + -)]
-        (swap! booking (fn [b-old] (assoc b-old :position (add-min? (:totalFilled fill) (:position b-old)))))))))
+      (let [add-min? (if (= (:direction order-response) "buy") + -)]
+        (swap! booking (fn [b-old] (let [new-position (add-min? (:position b-old) (:qty fill))
+                                         new-cash (add-min? (:cash b-old) (* (:price order-response) (:qty fill)))]
+                                     (assoc b-old :position new-position
+                                                  :cash new-cash))))))))
 
 (s/defn generate-sell-order :- [schem/new-order] [venue :- s/Str stock :- s/Str account :- s/Str order-response :- schem/order]
   (mapv (fn [fill]
@@ -33,7 +37,7 @@
     (let [order-response (api/new-order buy-order)]
       (when (bought-sold-something? order-response)
         (update-booking order-response)
-        (swap! sell-me conj (generate-sell-order venue stock account order-response))
+        (swap! sell-me concat (generate-sell-order venue stock account order-response))
         (println "bought " buy-order)))))
 
 (defn sell-a-thing []
