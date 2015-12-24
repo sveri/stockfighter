@@ -1,7 +1,7 @@
 (ns de.sveri.stockfighter.components.server
-  (:require #_[mount.core :refer [defstate]]
-    ;[de.sveri.stockfighter.components.config :refer [config]]
-    ;[de.sveri.stockfighter.components.handler :refer [handler]]
+  (:require [mount.core :refer [defstate]]
+    [de.sveri.stockfighter.components.config :refer [config]]
+    [de.sveri.stockfighter.components.handler :refer [handler]]
     [taoensso.timbre :as timbre]
     ;[ring.server.standalone :refer [serve]]
     [org.httpkit.server :refer [run-server]]
@@ -11,7 +11,7 @@
     ;[taoensso.timbre.appenders.rotor :as rotor]
     [selmer.parser :as parser]
     [de.sveri.stockfighter.session :as session]
-    [com.stuartsierra.component :as component])
+    #_[com.stuartsierra.component :as component])
   (:import (clojure.lang AFunction)))
 
 (defn destroy
@@ -35,21 +35,21 @@
   (timbre/info "\n-=[ stockfigherui started successfully"
                (when (= (:env config) :dev) "using the development profile") "]=-"))
 
-;(defstate server :start (run-server handler {:port (get-in config [:config :port] 3000)})
-;          :stop (when (instance? AFunction server) (server)))
+(defstate server :start (run-server handler {:port (get-in config [:config :port] 3000)})
+          :stop (when (instance? AFunction server) (server)))
 
 
 
-(defrecord WebServerProd [handler config]
-  component/Lifecycle
-  (start [component]
-    (let [handler (:handler handler)
-          server (run-server handler {:port (get-in config [:config :port] 3000)})]
-      (assoc component :server server)))
-  (stop [component]
-    (let [server (:server component)]
-      (when server (server)))
-    component))
-
-(defn new-web-server-prod []
-  (map->WebServerProd {}))
+;(defrecord WebServerProd [handler config]
+;  component/Lifecycle
+;  (start [component]
+;    (let [handler (:handler handler)
+;          server (run-server handler {:port (get-in config [:config :port] 3000)})]
+;      (assoc component :server server)))
+;  (stop [component]
+;    (let [server (:server component)]
+;      (when server (server)))
+;    component))
+;
+;(defn new-web-server-prod []
+;  (map->WebServerProd {}))

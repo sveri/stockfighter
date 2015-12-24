@@ -2,7 +2,7 @@
   (:require [taoensso.timbre :as timbre]
             [de.sveri.stockfighter.cljccore :as cljc]
             [de.sveri.stockfighter.components.server]
-            #_[mount.core :as mount])
+            [mount.core :as mount])
   (:gen-class))
 
 (defn -main [& args]
