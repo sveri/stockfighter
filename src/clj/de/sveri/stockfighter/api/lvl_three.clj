@@ -14,17 +14,24 @@
 (s/defn bought-sold-something? :- s/Bool [order :- schem/order] (< 0 (:totalFilled order)))
 
 (s/defn buy-or-sell? :- schem/direction [venue stock account quote-history]
+  (println "b - s" (calc/get-avg-bid venue stock account quote-history 5)
+           (calc/get-avg-bid venue stock account quote-history 10)
+           (if (< (calc/get-avg-bid venue stock account quote-history 5)
+                  (calc/get-avg-bid venue stock account quote-history 10))
+             "buy"
+             "sell"))
   (if (< (calc/get-avg-bid venue stock account quote-history 5)
          (calc/get-avg-bid venue stock account quote-history 10))
     "buy"
     "sell"))
 
-(s/defn update-booking :- s/Any [order-response :- schem/order]
+(s/defn update-booking :- s/Any [order-response :- schem/order book-atom :- s/Any]
   (let [fills (:fills order-response)]
     (doseq [fill fills]
-      (let [add-min? (if (= (:direction order-response) "buy") + -)]
-        (swap! booking (fn [b-old] (let [new-position (add-min? (:position b-old) (:qty fill))
-                                         new-cash (add-min? (:cash b-old) (* (:price order-response) (:qty fill)))]
+      (let [add-min-position? (if (= (:direction order-response) "buy") + -)
+            add-min-cash? (if (= (:direction order-response) "buy") - +)]
+        (swap! book-atom (fn [b-old] (let [new-position (add-min-position? (:position b-old) (:qty fill))
+                                         new-cash (add-min-cash? (:cash b-old) (* (:price fill) (:qty fill)))]
                                      (assoc b-old :position new-position
                                                   :cash new-cash))))))))
 
@@ -42,15 +49,17 @@
     (println "trying to buy: " buy-order)
     (let [order-response (api/new-order buy-order)]
       (when (bought-sold-something? order-response)
-        (update-booking order-response)
+        (update-booking order-response booking)
         (swap! sell-me concat (generate-sell-order venue stock account order-response))
         (println "bought " buy-order)))))
 
-(defn sell-a-thing []
-  (let [sell-order (first @sell-me)
+(defn sell-a-thing [venue stock account quote-history]
+  (let [sell-price (int (calc/get-avg-bid venue stock account quote-history 5))
+        sell-order {:account   account :venue venue :stock stock :price sell-price :qty 100 :direction "sell"
+                   :orderType "immediate-or-cancel"}
         sell-response (api/new-order sell-order)]
     (when (bought-sold-something? sell-response)
-      (update-booking sell-response))
+      (update-booking sell-response booking))
     (println "trying to sell: " sell-order)
     (println sell-response)
     ;(if (= (:qty sell-order) (:totalFilled sell-response))
@@ -62,8 +71,8 @@
 
 (s/defn start-lvl-three :- s/Any
   [{:keys [venue stock account] :as vsa} :- schem/vsa quote-history :- s/Any]
-  (if (buy-or-sell? venue stock account quote-history)
+  (if (= "buy" (buy-or-sell? venue stock account quote-history))
     ;(empty? @sell-me)
     ;(if (< (count @sell-me) 3)
     (buy-a-thing venue stock account quote-history)
-    (sell-a-thing)))
+    (sell-a-thing venue stock account quote-history)))

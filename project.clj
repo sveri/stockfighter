@@ -180,4 +180,5 @@
 
   :aliases {"rel-jar" ["do" "clean," "cljsbuild" "once" "adv," "uberjar"]
             "unit" ["do" "test" ":unit"]
+            "cur" ["do" "test" ":cur"]
             "integ" ["do" "test" ":integration"]})
