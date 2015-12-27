@@ -13,6 +13,12 @@
 
 (s/defn bought-sold-something? :- s/Bool [order :- schem/order] (< 0 (:totalFilled order)))
 
+(s/defn buy-or-sell? :- schem/direction [venue stock account quote-history]
+  (if (< (calc/get-avg-bid venue stock account quote-history 5)
+         (calc/get-avg-bid venue stock account quote-history 10))
+    "buy"
+    "sell"))
+
 (s/defn update-booking :- s/Any [order-response :- schem/order]
   (let [fills (:fills order-response)]
     (doseq [fill fills]
@@ -56,7 +62,8 @@
 
 (s/defn start-lvl-three :- s/Any
   [{:keys [venue stock account] :as vsa} :- schem/vsa quote-history :- s/Any]
-  (if (empty? @sell-me)
+  (if (buy-or-sell? venue stock account quote-history)
+    ;(empty? @sell-me)
     ;(if (< (count @sell-me) 3)
     (buy-a-thing venue stock account quote-history)
     (sell-a-thing)))

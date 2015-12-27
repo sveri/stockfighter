@@ -15,6 +15,7 @@
 (defmulti parse-response (fn [m] (:status m)))
 (defmethod parse-response 200 [m]
   (json/read-str (:body m) :key-fn keyword))
+
 (defmethod parse-response :default [m]
   (let [body (json/read-str (:body m) :key-fn keyword)]
     {:status (:status m) :error (:error body)}))
@@ -48,7 +49,7 @@
 
 ;;; level
 
-(s/defn start-game :- schem/levels-response [name :- s/Str]
+(s/defn start-game :- (schem/error-or-succ schem/levels-response) [name :- s/Str]
   (parse-response (client/post (str gm-uri "levels/" name) (with-key-and-defaults))))
 
 (defn get-level-info [instance]

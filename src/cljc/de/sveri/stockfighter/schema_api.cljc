@@ -59,7 +59,8 @@
 
 
 ;; general
-(def response-error {:status s/Num :error s/Str})
+(def response-error (s/cond-pre {:ok (s/eq "false") :error s/Str} {:status s/Num :error s/Str}))
+(defn error-or-succ [succ] (s/cond-pre {:ok (s/eq false) :error s/Str} {:status s/Num :error s/Str} succ))
 (def ok-response {:status (s/eq 200) :headers s/Any :body {:ok s/Str}})
 (def common-state {:game-info          levels-response
                    :game-state         game-state
