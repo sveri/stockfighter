@@ -9,7 +9,11 @@
 ; nav = cash + (shares * share_price)
 (def booking (atom {:nav 0 :position 0 :cash 0}))
 
-(s/defn bought-sold-something? :- s/Bool [order :- (s/maybe schem/order)] (if order (< 0 (:totalFilled order)) false))
+(s/defn bought-sold-something? :- s/Bool
+  [order :- (s/maybe (schem/error-or-succ schem/order))]
+  (if order (< 0 (:totalFilled order))
+            ((println "error occured: " order)
+            false)))
 
 (s/defn buy-or-sell? :- schem/direction [venue stock account quote-history]
   (if (< (calc/get-avg-bid venue stock account quote-history 5)
@@ -29,11 +33,11 @@
 
 (s/defn ->new-order-resp :- s/Any
   [venue :- s/Str stock :- s/Str account :- s/Str quote-history :- s/Any direction :- schem/direction
-   qty :- s/Num & [given-price :- s/Num]]
+   qty :- s/Num & [given-price :- (s/maybe s/Num)]]
   (when-let [float-price (calc/get-avg-bid venue stock account quote-history 5)]
     (let [price (int float-price)
           order {:account   account :venue venue :stock stock
-                 :price     (if (< price given-price) given-price price)
+                 :price     (if (and given-price (< price given-price)) given-price price)
                  :qty       qty :direction direction
                  :orderType "immediate-or-cancel"}]
       (api/new-order order))))
@@ -55,6 +59,6 @@
   [{:keys [venue stock account]} :- schem/vsa quote-history :- s/Any quote :- schem/quote]
   (cond
     (< 200 (get @booking :position 0)) (sell-a-thing venue stock account quote-history quote)
-    (< -400 (get @booking :position 0)) (buy-a-thing venue stock account quote-history)
+    (< -200 (get @booking :position 0)) (buy-a-thing venue stock account quote-history)
     (= "buy" (buy-or-sell? venue stock account quote-history)) (buy-a-thing venue stock account quote-history)
-    :else (sell-a-thing venue stock account quote-history)))
+    :else (sell-a-thing venue stock account quote-history quote)))

@@ -7,7 +7,6 @@
 
 (s/defn get-avg-of :- (s/maybe s/Num) [quotes key]
   (let [clean-quotes (filter key quotes)]
-    ;(println quotes)
     (when (not-empty clean-quotes)
       (double (/ (reduce (fn [sum bid] (if bid (+ sum bid) sum)) (map key clean-quotes)) (count clean-quotes))))))
 
