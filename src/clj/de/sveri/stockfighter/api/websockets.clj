@@ -26,7 +26,9 @@
   [vsa :- schem/vsa quote-response :- s/Str]
   (let [quote (json/read-str quote-response :key-fn keyword :value-fn api->date)]
     (if (:ok quote)
-      (bots/start-bot vsa (:quote quote) quote-history)
+      (try
+        (bots/start-bot vsa (:quote quote) quote-history)
+        (catch Exception e (.printStackTrace e)))
       (println "something else happened: " quote-response))))
 
 (s/defn connect-quotes :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa]

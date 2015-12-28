@@ -49,8 +49,8 @@
 
 (def execution {:ok    s/Bool :account s/Str :venue s/Str :stock s/Str :order order :standingId s/Num :incomingId s/Num
                 :price s/Num :filled s/Num :filledAt s/Inst :standingComplete s/Bool :incomingComplete s/Bool})
-(def execution-stream {:total-filled (s/cond-pre s/Num) :filled-avg (s/cond-pre s/Num)})
-;(def execution-stream {:total-filled (s/cond-pre nil s/Num) :filled-avg (s/cond-pre nil s/Num)})
+
+(def execution-stream {:spread s/Num :bids-avg s/Num :asks-avg s/Num})
 
 (def autobuy {s/Keyword new-batch-order})
 
