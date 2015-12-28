@@ -29,10 +29,12 @@
 
 (s/defn ->new-order-resp :- s/Any
   [venue :- s/Str stock :- s/Str account :- s/Str quote-history :- s/Any direction :- schem/direction
-   qty :- s/Num]
+   qty :- s/Num & [given-price :- s/Num]]
   (when-let [float-price (calc/get-avg-bid venue stock account quote-history 5)]
-    (let [buy-price (int float-price)
-          order {:account   account :venue venue :stock stock :price buy-price :qty qty :direction direction
+    (let [price (int float-price)
+          order {:account   account :venue venue :stock stock
+                 :price     (if (< price given-price) given-price price)
+                 :qty       qty :direction direction
                  :orderType "immediate-or-cancel"}]
       (api/new-order order))))
 
@@ -42,16 +44,17 @@
       (update-booking order-response booking)
       (println "bought " order-response))))
 
-(defn sell-a-thing [venue stock account quote-history]
-  (let [sell-response (->new-order-resp venue stock account quote-history "sell" 50)]
+(s/defn sell-a-thing [venue stock account quote-history quote :- schem/quote]
+  (let [quote-price (:ask quote)
+        sell-response (->new-order-resp venue stock account quote-history "sell" (:askSize quote) quote-price)]
     (when (bought-sold-something? sell-response)
       (update-booking sell-response booking)
       (println "sold: " sell-response))))
 
 (s/defn start-lvl-three :- s/Any
-  [{:keys [venue stock account]} :- schem/vsa quote-history :- s/Any]
+  [{:keys [venue stock account]} :- schem/vsa quote-history :- s/Any quote :- schem/quote]
   (cond
-    (< 400 (get @booking :position 0)) (sell-a-thing venue stock account quote-history)
+    (< 200 (get @booking :position 0)) (sell-a-thing venue stock account quote-history quote)
     (< -400 (get @booking :position 0)) (buy-a-thing venue stock account quote-history)
     (= "buy" (buy-or-sell? venue stock account quote-history)) (buy-a-thing venue stock account quote-history)
     :else (sell-a-thing venue stock account quote-history)))

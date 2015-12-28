@@ -9,7 +9,8 @@
   (swap! local-state assoc :vsa {:venue (first (:venues resp))
                                  :stock (first (:tickers resp))
                                  :account (:account resp)})
-  (swap! local-state assoc :instanceId (:instanceId resp)))
+  (swap! local-state assoc :instanceId (:instanceId resp))
+  )
 
 (defn start-game [local-state state]
   (POST "/level/start"

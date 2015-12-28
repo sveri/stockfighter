@@ -19,12 +19,11 @@
     (println "disabling autobuy for: " vsa " and level: " lvl)
     (swap! autobuy-state dissoc key)))
 
-(s/defn start-bot [{:keys [venue stock account] :as vsa} :- schem/vsa quote :- s/Any quote-history :- s/Any]
+(s/defn start-bot [{:keys [venue stock account] :as vsa} :- schem/vsa quote :- schem/quote quote-history :- s/Any]
   (let [key (h/->unique-key venue stock account)
         lvl (:level (key @autobuy-state))]
     (when-let [autobuy-data (key @autobuy-state)]
       (cond
         (= lvl "chock_a_block") (two/autobuy autobuy-data quote)
-        (= lvl "sell_side") (three/start-lvl-three vsa quote-history)))
-    (swap! quote-history update key conj quote)))
+        (= lvl "sell_side") (three/start-lvl-three vsa quote-history quote)))))
 

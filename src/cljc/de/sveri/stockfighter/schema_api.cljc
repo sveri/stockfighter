@@ -1,7 +1,6 @@
 (ns de.sveri.stockfighter.schema-api
   (:require [schema.core :as s]
-    #?(:clj
-            [clj-time.format :as f])))
+    #?(:clj [clj-time.format :as f])))
 
 #?(:clj (def api-time-format (f/formatters :date-time)))
 
@@ -42,8 +41,12 @@
 
 (def new-batch-order (merge new-order {:target-qty s/Num :level levels}))
 
-(def quote {:symbol   s/Str :venue s/Str :bid s/Num :ask s/Num :bidSize s/Num :askSize s/Num :bidDepth s/Num
-            :askDepth s/Num :last s/Num :lastSize s/Num :lastTrade s/Inst :quoteTime s/Inst})
+(def quote {:symbol               s/Str :venue s/Str
+            (s/optional-key :bid) s/Num
+            (s/optional-key :ask) s/Num
+            :bidSize              s/Num :askSize s/Num :bidDepth s/Num
+            :askDepth             s/Num :last s/Num :lastSize s/Num :lastTrade s/Inst :quoteTime s/Inst
+            })
 ;(def quote-stream {:ok s/Bool :quote quote})
 (def quote-stream {:ok s/Bool :quote s/Str})
 

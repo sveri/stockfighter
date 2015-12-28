@@ -19,7 +19,7 @@
 
 (defn api->date [key value]
   (if (contains? #{:quoteTime :lastTrade :ts :filledAt} key)
-    (f/parse schem/api-time-format value)
+    (.toDate (f/parse schem/api-time-format value))
     value))
 
 (s/defn parse-quote :- s/Any
@@ -28,7 +28,8 @@
     (if (:ok quote)
       (try
         (bots/start-bot vsa (:quote quote) quote-history)
-        (catch Exception e (.printStackTrace e)))
+        (swap! quote-history update (h/->unique-key vsa) conj (:quote quote))
+        (catch Exception e (do (println (:quote quote)) (.printStackTrace e))))
       (println "something else happened: " quote-response))))
 
 (s/defn connect-quotes :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa]
