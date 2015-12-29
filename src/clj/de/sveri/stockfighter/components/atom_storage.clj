@@ -9,6 +9,7 @@
 (def executions-file "./env/dev/executions.edn")
 (def order-file "./env/dev/orders.edn")
 (def common-file "./env/dev/common-state.edn")
+(def booking-file )
 
 (defn load-atoms []
   ;(try (reset! ws/quote-history (read-string (slurp quotes-file)))
