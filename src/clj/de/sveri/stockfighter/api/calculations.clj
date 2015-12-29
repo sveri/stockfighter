@@ -11,7 +11,7 @@
       (double (/ (reduce (fn [sum bid] (if bid (+ sum bid) sum)) (map key clean-quotes)) (count clean-quotes))))))
 
 ; might return nil, have to find out when?
-(defn get-avg-bid
+(s/defn get-avg-bid :- (s/maybe s/Num)
   ([quotes] (get-avg-of quotes :bid))
   ([venue stock account quote-history & [last-x]]
    (let [quotes (->> (h/->unique-key venue stock account)

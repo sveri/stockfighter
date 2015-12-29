@@ -15,8 +15,8 @@
         false)))
 
 (s/defn buy-or-sell? :- schem/direction [venue stock account quote-history]
-  (if (< (calc/get-avg-bid venue stock account quote-history 5)
-         (calc/get-avg-bid venue stock account quote-history 10))
+  (if (< (or (calc/get-avg-bid venue stock account quote-history 2) 0)
+         (or (calc/get-avg-bid venue stock account quote-history 4) 0))
     "buy"
     "sell"))
 ;
@@ -39,16 +39,18 @@
                  :price     (if (and given-price (< price given-price)) given-price price)
                  :qty       (if (= 0 qty) default-qty qty)
                  :direction direction
-                 :orderType "limit"}]
-                 ;:orderType "immediate-or-cancel"}]
+                 ;:orderType "limit"}]
+                 :orderType "immediate-or-cancel"}]
 
       (let [o-resp (api/new-order order)]
         ;(println "foo: " (:direction order) " - " given-price)
         ;(println o-resp)
         o-resp))))
 
-(s/defn buy-a-thing [venue stock account quote-history]
-  (let [order-response (->new-order-resp venue stock account quote-history "buy" default-qty)]
+(s/defn buy-a-thing [venue stock account quote-history quote :- schem/quote]
+  (let [qty (if (< (:bidSize quote) default-qty) (:bidSize quote) default-qty)
+        order-response (->new-order-resp venue stock account quote-history "buy" qty (:bid quote))]
+    (println "qty " qty (:bidSize quote) (:bid quote))
     (when (bought-sold-something? order-response)
       #_(update-booking order-response booking)
       #_(println "bought " order-response))))
@@ -62,10 +64,13 @@
 
 (s/defn start-lvl-three :- s/Any
   [{:keys [venue stock account]} :- schem/vsa quote-history :- s/Any quote :- schem/quote
-   booking :- schem/booking]
-  (println (< 200 (get @booking :position 0)))
+   booking :- (s/atom schem/booking)]
+  ;(println (> -200 (get @booking :position 0)))
   (cond
     (< 200 (get @booking :position 0)) (sell-a-thing venue stock account quote-history quote)
-    (> -200 (get @booking :position 0)) (buy-a-thing venue stock account quote-history)
-    (= "buy" (buy-or-sell? venue stock account quote-history)) (buy-a-thing venue stock account quote-history)
-    :else (sell-a-thing venue stock account quote-history quote)))
+    (> -200 (get @booking :position 0)) (buy-a-thing venue stock account quote-history quote)
+    (= "buy" (buy-or-sell? venue stock account quote-history)) (buy-a-thing venue stock account quote-history quote)
+    (= "sell" (buy-or-sell? venue stock account quote-history)) (sell-a-thing venue stock account quote-history quote)
+    :else nil
+    ;:else (sell-a-thing venue stock account quote-history quote)
+    ))

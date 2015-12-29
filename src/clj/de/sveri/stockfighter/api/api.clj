@@ -4,7 +4,8 @@
             [schema.core :as s]
             [de.sveri.stockfighter.schema-api :as schem]
             [clojure.data.json :as json]
-            [taoensso.timbre :as timb]))
+            [taoensso.timbre :as timb]
+            [de.sveri.stockfighter.service.helper :as h]))
 
 
 (defn with-key-and-defaults
@@ -14,7 +15,7 @@
 
 (defmulti parse-response (fn [m] (:status m)))
 (defmethod parse-response 200 [m]
-  (json/read-str (:body m) :key-fn keyword))
+  (json/read-str (:body m) :key-fn keyword :value-fn h/api->date))
 
 (defmethod parse-response :default [m]
   (let [body (json/read-str (:body m) :key-fn keyword)]

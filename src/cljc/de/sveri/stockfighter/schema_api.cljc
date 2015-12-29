@@ -31,9 +31,9 @@
 
 (def vsa "venue - stock - account" {:venue s/Str :stock s/Str :account s/Str})
 
-(def fill {:price s/Num :qty s/Num :ts s/Str})
+(def fill {:price s/Num :qty s/Num :ts s/Inst})
 (def order {:ok        s/Bool :price s/Num :symbol s/Str :venue s/Str :direction direction :originalQty s/Num :qty s/Num
-            :orderType order-type :id s/Num :account s/Str :ts s/Str :fills [fill] :totalFilled s/Num :open s/Bool})
+            :orderType order-type :id s/Num :account s/Str :ts s/Inst :fills [fill] :totalFilled s/Num :open s/Bool})
 (def orders [order])
 
 (def new-order {:account   s/Str :venue s/Str :stock s/Str :price s/Num :qty s/Num :direction direction
@@ -50,7 +50,7 @@
 ;(def quote-stream {:ok s/Bool :quote quote})
 (def quote-stream {:ok s/Bool :quote s/Str})
 
-(def execution {:ok    s/Bool :account s/Str :venue s/Str :stock s/Str :order order :standingId s/Num :incomingId s/Num
+(def execution {:ok    s/Bool :account s/Str :venue s/Str :symbol s/Str :order order :standingId s/Num :incomingId s/Num
                 :price s/Num :filled s/Num :filledAt s/Inst :standingComplete s/Bool :incomingComplete s/Bool})
 
 (def execution-stream {:spread s/Num :bids-avg s/Num :asks-avg s/Num})

@@ -20,17 +20,13 @@
 (def booking (atom {:nav 0 :position 0 :cash 0}))
 
 
-(defn api->date [key value]
-  (if (contains? #{:quoteTime :lastTrade :ts :filledAt} key)
-    (.toDate (f/parse schem/api-time-format value))
-    value))
-
 (s/defn parse-quote :- s/Any
   [vsa :- schem/vsa quote-response :- s/Str]
-  (let [quote (json/read-str quote-response :key-fn keyword :value-fn api->date)]
+  (let [quote (json/read-str quote-response :key-fn keyword :value-fn h/api->date)]
     (if (:ok quote)
       (try
         (bots/start-bot vsa (:quote quote) quote-history booking)
+        ;(println (:quote quote))
         (swap! quote-history update (h/->unique-key vsa) conj (:quote quote))
         (catch Exception e (do (println (:quote quote)) (.printStackTrace e))))
       (println "something else happened: " quote-response))))
@@ -59,7 +55,7 @@
 
 (s/defn parse-execution :- s/Any
   [venue stock account execution-response :- s/Str]
-  (let [execution (json/read-str execution-response :key-fn keyword :value-fn api->date)]
+  (let [execution (json/read-str execution-response :key-fn keyword :value-fn h/api->date)]
     (if (:ok execution)
       (do (swap! execution-history update (h/->unique-key venue stock account) conj execution)
           (update-booking execution booking))

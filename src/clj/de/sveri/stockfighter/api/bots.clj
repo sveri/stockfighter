@@ -20,7 +20,7 @@
     (swap! autobuy-state dissoc key)))
 
 (s/defn start-bot [{:keys [venue stock account] :as vsa} :- schem/vsa quote :- schem/quote quote-history :- s/Any
-                   booking :- schem/booking]
+                   booking :- (s/atom schem/booking)]
   (let [key (h/->unique-key venue stock account)
         lvl (:level (key @autobuy-state))]
     (when-let [autobuy-data (key @autobuy-state)]
