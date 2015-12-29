@@ -16,6 +16,9 @@
 (def execution-history (atom {}))
 
 
+; nav = cash + (shares * share_price)
+(def booking (atom {:nav 0 :position 0 :cash 0}))
+
 
 (defn api->date [key value]
   (if (contains? #{:quoteTime :lastTrade :ts :filledAt} key)
@@ -27,7 +30,7 @@
   (let [quote (json/read-str quote-response :key-fn keyword :value-fn api->date)]
     (if (:ok quote)
       (try
-        (bots/start-bot vsa (:quote quote) quote-history)
+        (bots/start-bot vsa (:quote quote) quote-history booking)
         (swap! quote-history update (h/->unique-key vsa) conj (:quote quote))
         (catch Exception e (do (println (:quote quote)) (.printStackTrace e))))
       (println "something else happened: " quote-response))))
@@ -40,15 +43,26 @@
            :on-receive #(parse-quote vsa %)
            :on-close (fn [a b] (println a " - " b " - " (format "Closed quote websocket for %s?" (str venue stock account)))
                        (when (and (h/restart-api-websockets?) (= 1006 a)) (connect-quotes vsa)))
-           :on-error #(do (println (format "Some error occured for: %s - %s - %s:" venue stock account ))
-                         (.printStackTrace %)))))
+           :on-error #(do (println (format "Some error occured for: %s - %s - %s:" venue stock account))
+                          (.printStackTrace %)))))
+
+(s/defn update-booking :- s/Any [{:keys [order] :as execution} :- schem/execution book-atom :- s/Any]
+  (let [fills (:fills order)]
+    (doseq [fill fills]
+      (let [add-min-position? (if (= (:direction order) "buy") + -)
+            add-min-cash? (if (= (:direction order) "buy") - +)]
+        (swap! book-atom (fn [b-old] (let [new-position (add-min-position? (:position b-old) (:qty fill))
+                                           new-cash (add-min-cash? (:cash b-old) (* (:price fill) (:qty fill)))]
+                                       (assoc b-old :position new-position
+                                                    :cash new-cash))))))))
 
 
 (s/defn parse-execution :- s/Any
   [venue stock account execution-response :- s/Str]
   (let [execution (json/read-str execution-response :key-fn keyword :value-fn api->date)]
     (if (:ok execution)
-      (swap! execution-history update (h/->unique-key venue stock account) conj execution)
+      (do (swap! execution-history update (h/->unique-key venue stock account) conj execution)
+          (update-booking execution booking))
       (println "something else happened: " execution-response))))
 
 (s/defn connect-executions :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa]
