@@ -3,7 +3,8 @@
             [schema.core :as s]
             [de.sveri.stockfighter.schema-api :as schem]
             [de.sveri.stockfighter.api.api :as api]
-            [immutant.scheduling :refer :all]))
+            [immutant.scheduling :refer :all]
+            [com.rpl.specter :as spec]))
 
 (def default-qty 20)
 
@@ -100,30 +101,55 @@
 ;      ;:lse (sell-a-thing venue stock account quote-history quote)
 ;      ))
 
-(def counter-order (atom nil))
+(defn avg-ask [book]
+  ;(let [prices (spec/select [spec/ALL :asks spec/FIRST :price] (subvec (into [] (rseq (into [] book))) 10))]
+  (let [prices (spec/select [spec/ALL :asks spec/FIRST :price] book)]
+    (int (/ (reduce + prices) (count prices)))))
+
+(def counter-order (atom {:tries 0 :order nil}))
+
+(add-watch counter-order :co-watch (fn [_ _ _ new] #_(println new) new))
 
 (s/defn start-lvl-three :- s/Any
-  [{:keys [venue stock account]} :- schem/vsa orderbook :- schem/orderbooks]
-  ;(println (first (:asks (first orderbook))))
+  [{:keys [venue stock account]} :- schem/vsa orderbook :- schem/orderbooks booking :- (s/atom schem/booking)]
   (let [ask (first (:asks (first orderbook)))
+        ask-price (:price ask)
         bids (first (:bids (first orderbook)))
-        qty 2]
-    (if @counter-order
-      (let [order-response (api/new-order @counter-order)]
-        (when (= qty (:totalFilled order-response))
-          (reset! counter-order nil)))
-      (when ask
+        bid-price (:price bids)
+        spread (if (and ask-price bid-price) (- ask-price bid-price) nil)
+        ;avg-ask-price (avg-ask orderbook)
+        qty (if (and ask (< (:qty ask) 31)) (:qty ask) 10)]
+    (println bid-price " - " (:price (:order @counter-order)))
+    (if (:order @counter-order)
+      ;(let [order-response (api/new-order (:order @counter-order))]
+        ;(if (= qty (:totalFilled order-response))
+        ;(if (and (< 0 (:position booking)) (< 0 (:totalFilled order-response)))
+      (do
+
+        (if (< (:position @booking) 0)
+         (swap! counter-order assoc :order nil)
+         (do
+           (api/new-order (:order @counter-order))
+           (swap! counter-order update :tries + 1)
+             (when (= 5 (:tries @counter-order))
+               (swap! counter-order (fn [a] (let [price (get-in a [:order :price])]
+                                              (assoc-in a [:order :price] (- price 30))))))
+             (when (= 10 (:tries @counter-order))
+               (swap! counter-order assoc :order nil)))))
+      ;)
+      (when (and ask (< (:position @booking) 50))
         (let [buy-order {:account   account :venue venue :stock stock
-                         :price     (:price ask)
+                         :price     ask-price
                          :qty       qty
                          :direction "buy"
                          :orderType "immediate-or-cancel"}
               sell-order {:account   account :venue venue :stock stock
-                          :price     (+ (:price ask) 30)
+                          :price     (if (and spread (< spread 100))
+                                       (+ ask-price (- spread 20)) (+ ask-price 50))
                           :qty       qty
                           :direction "sell"
-                          :orderType "immediate-or-cancel"}
+                          :orderType "limit"}
               order-response (api/new-order buy-order)]
           (when (= qty (:totalFilled order-response))
-            (reset! counter-order sell-order)))))
+            (reset! counter-order {:tries 0 :order sell-order})))))
     ))

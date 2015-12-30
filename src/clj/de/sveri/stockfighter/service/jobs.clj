@@ -58,7 +58,7 @@
 
 (s/defn start-order-book :- s/Any
   [venue stock orderbook-atom ws]
-  (schedule #(start-order-book* venue stock orderbook-atom ws) (-> (id (str "order-book" venue stock)) (every 5 :seconds))))
+  (schedule #(start-order-book* venue stock orderbook-atom ws) (-> (id (str "order-book" venue stock)) (every 1 :seconds ))))
 
 (defn stop-order-book [venue stock]
   (stop (id (str "order-book" venue stock))))

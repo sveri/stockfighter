@@ -80,7 +80,7 @@
                                                  :low  -10
                                                  })))
 
-       :component-did-update update
+       ;:component-did-update update
        :display-name "chart"})))
 
 (defn main-page []

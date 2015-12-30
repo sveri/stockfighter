@@ -6,7 +6,8 @@
             [de.sveri.stockfighter.api.config :as conf]
             [de.sveri.stockfighter.schema-api :as schem]
             [de.sveri.stockfighter.api.api :as api]
-            [de.sveri.stockfighter.service.helper :as h]))
+            [de.sveri.stockfighter.service.helper :as h]
+            [com.rpl.specter :as spec]))
 
 (def quotes-socket (atom {}))
 (def executions-socket (atom {}))
@@ -23,34 +24,53 @@
 ;(add-watch order-book :print-watch (fn [_ _ _ new] (clojure.pprint/pprint new) new))
 
 (def test-book
-  '({:ok true,
-    :venue "MOEX",
-    :symbol "UUKG",
-    :ts #inst "2015-12-30T15:00:34.598-00:00",
-    :bids
-    [{:price 9098, :qty 203, :isBuy true}
-     {:price 8943, :qty 459, :isBuy true}
-     {:price 8899, :qty 459, :isBuy true}
-     {:price 8855, :qty 459, :isBuy true}
-     {:price 8736, :qty 148, :isBuy true}],
-    :asks
-    [{:price 9143, :qty 40, :isBuy false}
-     {:price 9188, :qty 40, :isBuy false}
-     {:price 9233, :qty 40, :isBuy false}]}
-    {:ok true,
-     :venue "MOEX",
+  '({:ok     true,
+     :venue  "MOEX",
      :symbol "UUKG",
-     :ts #inst "2015-12-30T15:00:24.616-00:00",
+     :ts     #inst "2015-12-30T15:00:34.598-00:00",
      :bids
-     [{:price 8793, :qty 203, :isBuy true}
-      {:price 8663, :qty 438, :isBuy true}
-      {:price 8620, :qty 438, :isBuy true}
-      {:price 8577, :qty 438, :isBuy true}],
+             [{:price 9098, :qty 203, :isBuy true}
+              {:price 8943, :qty 459, :isBuy true}
+              {:price 8899, :qty 459, :isBuy true}
+              {:price 8855, :qty 459, :isBuy true}
+              {:price 8736, :qty 148, :isBuy true}],
      :asks
-     [{:price 9175, :qty 47, :isBuy false}
-      {:price 9220, :qty 47, :isBuy false}
-      {:price 9265, :qty 15, :isBuy false}]}))
+             [{:price 9143, :qty 40, :isBuy false}
+              {:price 9188, :qty 40, :isBuy false}
+              {:price 9233, :qty 40, :isBuy false}]}
+     {:ok     true,
+      :venue  "MOEX",
+      :symbol "UUKG",
+      :ts     #inst "2015-12-30T15:00:24.616-00:00",
+      :bids
+              [{:price 8793, :qty 203, :isBuy true}
+               {:price 8663, :qty 438, :isBuy true}
+               {:price 8620, :qty 438, :isBuy true}
+               {:price 8577, :qty 438, :isBuy true}],
+      :asks
+              [{:price 9175, :qty 47, :isBuy false}
+               {:price 9220, :qty 47, :isBuy false}
+               {:price 9265, :qty 15, :isBuy false}]}
+     {:ok     true,
+      :venue  "MOEX",
+      :symbol "UUKG",
+      :ts     #inst "2015-12-30T15:00:24.616-00:00",
+      :bids
+              [{:price 8793, :qty 203, :isBuy true}
+               {:price 8663, :qty 438, :isBuy true}
+               {:price 8620, :qty 438, :isBuy true}
+               {:price 8577, :qty 438, :isBuy true}],
+      :asks
+              [{:price 9175, :qty 47, :isBuy false}
+               {:price 9220, :qty 47, :isBuy false}
+               {:price 9265, :qty 15, :isBuy false}]}))
 
+((fn avg-ask [book]
+   ;(map #(get-in % [:asks :price]) book)
+   (let [prices (spec/select [spec/ALL :asks spec/FIRST :price] book)]
+     (int (/ (reduce + prices) (count prices))))
+   )
+  test-book)
 
 (s/defn parse-quote :- s/Any
   [{:keys [venue stock] :as vsa} :- schem/vsa quote-response :- s/Str]
