@@ -21,7 +21,7 @@
 
 (def order-book (atom {}))
 
-(add-watch order-book :print-watch (fn [_ _ _ new] (clojure.pprint/pprint new)))
+;(add-watch order-book :print-watch (fn [_ _ _ new] (clojure.pprint/pprint new) new))
 
 
 (s/defn parse-quote :- s/Any

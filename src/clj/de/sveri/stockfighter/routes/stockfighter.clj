@@ -50,7 +50,7 @@
   (qh/start-pass-averages vsa websockets)
   (qh/start-pass-executions vsa websockets)
   (jobs/start-game-info (get-in @h/common-state [:game-info :instanceId]) vsa websockets)
-  (jobs/start-order-book venue stock ws/order-book)
+  (jobs/start-order-book venue stock ws/order-book websockets)
   (h/restart-api-websockets true)
   (response {:ok "ok"}))
 

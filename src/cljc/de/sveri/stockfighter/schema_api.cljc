@@ -18,7 +18,6 @@
 
 
 ;;;; stock
-
 (def stock {:name s/Str :symbol s/Str})
 (def stocks {:symbols [stock]})
 
@@ -41,12 +40,14 @@
 
 (def new-batch-order (merge new-order {:target-qty s/Num :level levels}))
 
+
 (def quote {:symbol               s/Str :venue s/Str
             (s/optional-key :bid) s/Num
             (s/optional-key :ask) s/Num
             :bidSize              s/Num :askSize s/Num :bidDepth s/Num
             :askDepth             s/Num :last s/Num :lastSize s/Num :lastTrade s/Inst :quoteTime s/Inst
             })
+
 ;(def quote-stream {:ok s/Bool :quote quote})
 (def quote-stream {:ok s/Bool :quote s/Str})
 
@@ -79,7 +80,7 @@
 ; cljs
 (def ticker {:bid-avg s/Num :bid-avg-last-10 s/Num :bid-avg-last-100 s/Num})
 
-(def state {
+(def state {(s/optional-key :orderbook)  [order-book]
             ;(s/optional-key :level)      levels
             (s/optional-key :orders)     orders
             (s/optional-key :ticker)     ticker

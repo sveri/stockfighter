@@ -40,8 +40,7 @@
   [instance-id :- s/Num send-fn :- s/Any conn-uids :- s/Any]
   (let [game-info (stock-api/get-level-info instance-id)]
     (swap! h/common-state assoc :game-state game-info)
-    (doseq [uid (:any @conn-uids)]
-      (send-fn uid [:game/info game-info]))))
+    (doseq [uid (:any @conn-uids)] (send-fn uid [:game/info game-info]))))
 
 (s/defn start-game-info :- s/Any [instance-id :- s/Num vsa :- schem/vsa {:keys [send-fn connected-uids]} :- s/Any]
   (let [key (keyword (str "game-info" (h/->unique-key vsa)))]
@@ -52,12 +51,15 @@
 
 
 (s/defn start-order-book* :- s/Any
-  [venue stock orderbook-atom]
-  (reset! orderbook-atom (stock-api/->orderbook venue stock)))
+  [venue stock orderbook-atom {:keys [send-fn connected-uids]} :- s/Any]
+  (let [orderbook (stock-api/->orderbook venue stock)]
+    (swap! orderbook-atom update (h/->unique-key venue stock) conj orderbook)
+    (doseq [uid (:any @connected-uids)] (send-fn uid [:order/order-book {:orderbook orderbook}]))
+    ))
 
 (s/defn start-order-book :- s/Any
-  [venue stock orderbook-atom]
-  (schedule #(start-order-book* venue stock orderbook-atom) (-> (id (str "order-book" venue stock)) (every 2 :seconds))))
+  [venue stock orderbook-atom ws]
+  (schedule #(start-order-book* venue stock orderbook-atom ws) (-> (id (str "order-book" venue stock)) (every 2 :seconds))))
 
 (defn stop-order-book [venue stock]
   (stop (id (str "order-book" venue stock))))

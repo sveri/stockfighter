@@ -1,7 +1,8 @@
-(ns de.sveri.stockfighter.level
+(ns de.sveri.stockfighter.game
   (:require [de.sveri.stockfighter.helper :as h]
             [ajax.core :refer [POST GET]]
-            [de.sveri.stockfighter.comm-helper :as comm-h]))
+            [de.sveri.stockfighter.new-order :as no]
+            [de.sveri.stockfighter.ticker :as tick]))
 
 (defn game-started [resp local-state]
   (println "size of venues: " (count (:venues resp)))
@@ -29,7 +30,22 @@
 
 
 
-(defn level-page [local-state state]
+;(defn new-autobuy [local-state state]
+;  (POST "/stockfighter/bots/start"
+;        {:params        (merge {:level (:cur-level @state)} (->new-order local-state state))
+;         :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
+;         :handler       (fn [e] (println e))
+;         :error-handler (fn [e] (println "some error occured: " e))}))
+;
+;(defn new-autobuy-stop [local-state]
+;  (POST "/stockfighter/bots/stop"
+;        {:params        (:vsa @local-state)
+;         :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
+;         :handler       (fn [e] (println e))
+;         :error-handler (fn [e] (println "some error occured: " e))}))
+
+
+(defn game-page [local-state state]
   [:div
    [:div.row
     [:div.col-md-12
@@ -50,4 +66,17 @@
          [:span (with-margin {} 20)]
          (str "Target Price: " (get-in @state [:game-info :flash]))]
          ;(str "Target Price: " (comm-h/extract-client-target-price (get-in @state [:game-info :flash :info])))]
-        ]]]]]])
+        ]]]]]
+   [:hr]
+   [:div.row
+    [:div.col-md-2
+     [:button.btn.btn-primary.pull-left {:style {:margin-left "10px"} :on-click #(do (.preventDefault %)
+                                                                                     (tick/start-quote-ticker local-state))} "Start All Ticker"]]
+    [:div.col-md-2
+     [:button.btn.btn-primary.pull-left {:style {:margin-left "10px"} :on-click #(do (.preventDefault %)
+                                                                                     (tick/stop-quote-ticker local-state))} "Stop All Ticker"]]
+    [:div.col-md-2
+     (h/wrap-with-form "" [:button.btn.btn-danger {:style    {:margin-left "10px"}
+                                                   :on-click #(no/new-autobuy local-state state)} "Start Bot"])]
+    [:div.col-md-2 (h/wrap-with-form "" [:button.btn.btn-danger {:style    {:margin-left "10px"}
+                                                                 :on-click #(no/new-autobuy-stop local-state)} "Stop Bot"])]]])

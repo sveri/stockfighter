@@ -9,7 +9,7 @@
             [de.sveri.stockfighter.new-order :as no]
             [de.sveri.stockfighter.quotes-ticker :as qt]
             [de.sveri.stockfighter.ticker :as tp]
-            [de.sveri.stockfighter.level :as lp]
+            [de.sveri.stockfighter.game :as game]
             [de.sveri.stockfighter.executions :as exec]))
 
 (def local-state (alan/local-storage (atom {:vsa {:venue "" :stock "" :account ""}}) :cljs-storage))
@@ -20,56 +20,55 @@
                               :orderType "limit"}}))
 (add-watch state :validator-watch (fn [_ _ _ new] (s/validate schem/state new)))
 
-;(defn load-orders [_]
-;  (let [venue (:venue @state) stock (:stock @state) account (:account @state)]
-;    (GET (str "/stockfighter/orders/venue/" venue "/stock/" stock "/account/" account)
-;         {:handler       #(swap! state assoc :orders %)
-;          :error-handler h/error-handler})))
 
-;(s/defn
-;  order-table
-;  :- s/Any
-;  [orders :- schem/orders]
-;  [:div
-;   [:hr]
-;   [:table.table
-;    [:thead
-;     [:tr
-;      [:th "Price"]
-;      [:th "Direction"]
-;      [:th "Original QTY"]
-;      [:th "QTY"]
-;      [:th "Order Type"]
-;      [:th "Open?"]]]
-;    [:tbody
-;     (for [[idx order] (comm-h/zip (range) orders)]
-;       ^{:key idx} [:tr [:td (:price order)]
-;                    [:td (:direction order)]
-;                    [:td (:originalQty order)]
-;                    [:td (:qty order)]
-;                    [:td (:orderType order)]
-;                    [:td (h/bool->string (:open order))]])]]])
+;var chart = new Chartist.Bar('.ct-chart', {
+;                                           labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10'],
+;                                           series: [
+;                                                    [1, 2, 4, 8, 6, -2, -1, -4, -6, -2]
+;                                                    ]
+;                                           }, {
+;                                               high: 10,
+;                                               low: -10,
+;                                               axisX: {
+;                                                       labelInterpolationFnc: function(value, index) {
+;                                                                                                      return index % 2 === 0 ? value : null;
+;}
+;}
+;});
+
+(defn init-chart [state]
+  ;google.load('visualization', '1.1', {packages: ['line']});
+  ;(.load js/google "visualization" "1.1" (clj->js {:packages ["line"]}))
+  ;(let [table (js/google.visualization.DataTable.)])
+  (.Bar js/Chartist "#chart" (clj->js
+                              {:labels ["W1"]
+                               :series [[1]]})
+        (clj->js {:high 10
+                  :low  -10
+                  }))
+  (println @state)
+  )
 
 (defn main-page []
-  (let [orders (:orders @state)]
-    [:div
-     [lp/level-page local-state state]
-     [:hr]
-     [no/new-order-page local-state state]
-     [:hr]
-     [tp/ticker-page local-state state]
-     [:hr]
-     [exec/exec-page state]
-     ]))
-
-;(defn init-chart [state]
-;  ;google.load('visualization', '1.1', {packages: ['line']});
-;  (.load js/google "visualization" "1.1" (clj->js {:packages ["line"]}))
-;  (let [table (js/google.visualization.DataTable.)])
-;  )
+  (reagent/create-class
+    {:component-did-mount
+                   #(init-chart state)
+     :display-name "main page"
+     :reagent-render
+                   (fn []
+                     [:div
+                      [game/game-page local-state state]
+                      [:hr]
+                      [:div#chart]
+                      ;[no/new-order-page local-state state]
+                      ;[:hr]
+                      ;[tp/ticker-page local-state state]
+                      ;[:hr]
+                      ;[exec/exec-page state]
+                      ])})
+  )
 
 (defn ^:export main []
   (qt/start-router! state)
-  ;(init-chart state)
   (reagent/render-component (fn [] [main-page]) (h/get-elem "app")))
 
