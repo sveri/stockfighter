@@ -54,12 +54,11 @@
   [venue stock orderbook-atom {:keys [send-fn connected-uids]} :- s/Any]
   (let [orderbook (stock-api/->orderbook venue stock)]
     (swap! orderbook-atom update (h/->unique-key venue stock) conj orderbook)
-    (doseq [uid (:any @connected-uids)] (send-fn uid [:order/order-book {:orderbook orderbook}]))
-    ))
+    (doseq [uid (:any @connected-uids)] (send-fn uid [:order/order-book {:orderbook orderbook}]))))
 
 (s/defn start-order-book :- s/Any
   [venue stock orderbook-atom ws]
-  (schedule #(start-order-book* venue stock orderbook-atom ws) (-> (id (str "order-book" venue stock)) (every 2 :seconds))))
+  (schedule #(start-order-book* venue stock orderbook-atom ws) (-> (id (str "order-book" venue stock)) (every 5 :seconds))))
 
 (defn stop-order-book [venue stock]
   (stop (id (str "order-book" venue stock))))

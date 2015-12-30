@@ -23,14 +23,42 @@
 
 ;(add-watch order-book :print-watch (fn [_ _ _ new] (clojure.pprint/pprint new) new))
 
+(def test-book
+  '({:ok true,
+    :venue "MOEX",
+    :symbol "UUKG",
+    :ts #inst "2015-12-30T15:00:34.598-00:00",
+    :bids
+    [{:price 9098, :qty 203, :isBuy true}
+     {:price 8943, :qty 459, :isBuy true}
+     {:price 8899, :qty 459, :isBuy true}
+     {:price 8855, :qty 459, :isBuy true}
+     {:price 8736, :qty 148, :isBuy true}],
+    :asks
+    [{:price 9143, :qty 40, :isBuy false}
+     {:price 9188, :qty 40, :isBuy false}
+     {:price 9233, :qty 40, :isBuy false}]}
+    {:ok true,
+     :venue "MOEX",
+     :symbol "UUKG",
+     :ts #inst "2015-12-30T15:00:24.616-00:00",
+     :bids
+     [{:price 8793, :qty 203, :isBuy true}
+      {:price 8663, :qty 438, :isBuy true}
+      {:price 8620, :qty 438, :isBuy true}
+      {:price 8577, :qty 438, :isBuy true}],
+     :asks
+     [{:price 9175, :qty 47, :isBuy false}
+      {:price 9220, :qty 47, :isBuy false}
+      {:price 9265, :qty 15, :isBuy false}]}))
+
 
 (s/defn parse-quote :- s/Any
-  [vsa :- schem/vsa quote-response :- s/Str]
+  [{:keys [venue stock] :as vsa} :- schem/vsa quote-response :- s/Str]
   (let [quote (json/read-str quote-response :key-fn keyword :value-fn h/api->date)]
     (if (:ok quote)
       (try
-        (bots/start-bot vsa (:quote quote) quote-history booking)
-        ;(println (:quote quote))
+        (bots/start-bot vsa (:quote quote) (get @order-book (h/->unique-key venue stock)) booking)
         (swap! quote-history update (h/->unique-key vsa) conj (:quote quote))
         (catch Exception e (do (println (:quote quote)) (.printStackTrace e))))
       (println "something else happened: " quote-response))))
@@ -46,7 +74,7 @@
            :on-error #(do (println (format "Some error occured for: %s - %s - %s:" venue stock account))
                           (.printStackTrace %)))))
 
-(s/defn update-booking :- s/Any [{:keys [order] :as execution} :- schem/execution book-atom :- s/Any]
+(s/defn update-booking :- s/Any [{:keys [order]} :- schem/execution book-atom :- s/Any]
   (let [fills (:fills order)]
     (doseq [fill fills]
       (let [add-min-position? (if (= (:direction order) "buy") + -)

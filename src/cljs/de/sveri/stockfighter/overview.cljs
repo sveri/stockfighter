@@ -36,30 +36,65 @@
 ;}
 ;});
 
-(defn init-chart [state]
-  ;google.load('visualization', '1.1', {packages: ['line']});
-  ;(.load js/google "visualization" "1.1" (clj->js {:packages ["line"]}))
-  ;(let [table (js/google.visualization.DataTable.)])
-  (.Bar js/Chartist "#chart" (clj->js
-                              {:labels ["W1"]
-                               :series [[1]]})
-        (clj->js {:high 10
-                  :low  -10
-                  }))
-  (println @state)
-  )
+;(defn init-chart [state]
+;  ;google.load('visualization', '1.1', {packages: ['line']});
+;  ;(.load js/google "visualization" "1.1" (clj->js {:packages ["line"]}))
+;  ;(let [table (js/google.visualization.DataTable.)])
+;  (let [orderbook (:orderbook @state)]
+;    (.Bar js/Chartist "#chart" (clj->js
+;                                {:labels ["W1"]
+;                                 :series [[1]]})
+;         (clj->js {:high 10
+;                   :low  -10
+;                   }))
+;    (println orderbook))
+;  )
+
+(defn chart []
+  (let [
+        ;gmap    (atom nil)
+        ;options (clj->js {"zoom" 9})
+        update  (fn []
+                  (let [orderbook (:orderbook @state)
+                        bids (comm-h/get-bids-or-asks orderbook :bids)
+                        asks (comm-h/get-bids-or-asks orderbook :asks)]
+                    (.Line js/Chartist "#chart" (clj->js
+                                                 #_{:labels [[1, 2]]
+                                                  :series [[5, 6]]}
+                                                 {:labels (into [] (range 1 (inc (count bids))))
+                                                  :series [bids asks]})
+                         (clj->js {:high (+ 1000 (max bids))
+                                   :low  (- (max asks) 1000)
+                                   }))
+                    ))]
+
+    (reagent/create-class
+      {:reagent-render (fn []
+                         [:div#chart {:style {:height 400}}])
+
+       :component-did-mount (fn [state]
+                                  (.Bar js/Chartist "#chart" (clj->js
+                                                              {:labels ["W1"]
+                                                               :series [[1]]})
+                                       (clj->js {:high 10
+                                                 :low  -10
+                                                 })))
+
+       :component-did-update update
+       :display-name "chart"})))
 
 (defn main-page []
   (reagent/create-class
-    {:component-did-mount
-                   #(init-chart state)
+    {
+     ;:component-did-mount #(init-chart state)
+     ;:component-did-update #(init-chart state)
      :display-name "main page"
      :reagent-render
                    (fn []
                      [:div
                       [game/game-page local-state state]
                       [:hr]
-                      [:div#chart]
+                      [chart @state]
                       ;[no/new-order-page local-state state]
                       ;[:hr]
                       ;[tp/ticker-page local-state state]

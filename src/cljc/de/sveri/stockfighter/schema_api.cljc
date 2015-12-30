@@ -23,6 +23,7 @@
 
 (def bid-ask {:price s/Num :qty s/Num :isBuy s/Bool})
 (def order-book {:ok s/Bool :venue s/Str :symbol s/Str :bids [bid-ask] :asks [bid-ask] :ts s/Inst})
+(def orderbooks [order-book])
 
 
 (def direction (s/cond-pre (s/eq "buy") (s/eq "sell")))

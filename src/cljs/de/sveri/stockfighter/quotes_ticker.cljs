@@ -21,7 +21,10 @@
          [:quotes/averages m] (swap! state assoc :ticker m)
          [:game/info m] (swap! state assoc :game-info m)
          [:executions/last m] (swap! state assoc :executions m)
-         [:order/order-book orderbook] (swap! state update :orderbook conj (:orderbook orderbook))))
+         [:order/order-book orderbook] (do
+                                         (swap! state update :orderbook conj (:orderbook orderbook))
+                                         ;(println (:orderbook @state))
+                                         )))
 
 (def     router_ (atom nil))
 (defn  stop-router! [] (when-let [stop-f @router_] (stop-f)))
