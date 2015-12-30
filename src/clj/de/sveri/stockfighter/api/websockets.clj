@@ -6,7 +6,6 @@
             [de.sveri.stockfighter.api.config :as conf]
             [de.sveri.stockfighter.schema-api :as schem]
             [de.sveri.stockfighter.api.api :as api]
-            [de.sveri.stockfighter.api.bots :as bots]
             [de.sveri.stockfighter.service.helper :as h]))
 
 (def quotes-socket (atom {}))
@@ -58,7 +57,7 @@
   (let [quote (json/read-str quote-response :key-fn keyword :value-fn h/api->date)]
     (if (:ok quote)
       (try
-        (bots/start-bot vsa (:quote quote) (get @order-book (h/->unique-key venue stock)) booking)
+        ;(bots/start-bot vsa (:quote quote) (get @order-book (h/->unique-key venue stock)) booking)
         (swap! quote-history update (h/->unique-key vsa) conj (:quote quote))
         (catch Exception e (do (println (:quote quote)) (.printStackTrace e))))
       (println "something else happened: " quote-response))))

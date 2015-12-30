@@ -3,28 +3,34 @@
             [de.sveri.stockfighter.schema-api :as schem]
             [schema.core :as s]
             [de.sveri.stockfighter.api.lvl-two :as two]
-            [de.sveri.stockfighter.api.lvl-three :as three]))
+            [de.sveri.stockfighter.api.lvl-three :as three]
+            [de.sveri.stockfighter.api.websockets :as ws]
+            [immutant.scheduling :refer :all]))
 
 
 (def autobuy-state (atom {}))
 
-(s/defn enable-autobuy :- s/Any
-  [venue :- s/Str stock :- s/Str account :- s/Str order :- schem/new-batch-order level :- schem/levels]
-  (println "enabling autobuy for: " venue stock account " and level: " level)
-  (swap! autobuy-state assoc (h/->unique-key venue stock account) (assoc order :level level)))
 
-(s/defn disable-autobuy :- s/Any [vsa :- schem/vsa]
-  (let [key (h/->unique-key vsa)
-        lvl (:level (key @autobuy-state))]
-    (println "disabling autobuy for: " vsa " and level: " lvl)
-    (swap! autobuy-state dissoc key)))
 
-(s/defn start-bot [{:keys [venue stock account] :as vsa} :- schem/vsa quote :- schem/quote orderbook :- schem/orderbooks
-                   booking :- (s/atom schem/booking)]
+(s/defn tick-bot [{:keys [venue stock account] :as vsa} :- schem/vsa orderbook :- schem/orderbooks]
   (let [key (h/->unique-key venue stock account)
         lvl (:level (key @autobuy-state))]
     (when-let [autobuy-data (key @autobuy-state)]
       (cond
-        (= lvl "chock_a_block") (two/autobuy autobuy-data quote)
-        (= lvl "sell_side") (three/start-lvl-three vsa orderbook booking)))))
+        ;(= lvl "chock_a_block") (two/autobuy autobuy-data quote)
+        (= lvl "sell_side") (three/start-lvl-three vsa orderbook)))))
+
+(s/defn enable-bots :- s/Any
+  [{:keys [venue stock account] :as vsa} order :- schem/new-batch-order level :- schem/levels]
+  (println "enabling autobuy for: " venue stock account " and level: " level)
+  (swap! autobuy-state assoc (h/->unique-key venue stock account) (assoc order :level level))
+  (schedule #(tick-bot vsa (get @ws/order-book (h/->unique-key venue stock)))
+            (-> (id (str "bot-" (h/->unique-key vsa))) (every 1 :seconds))))
+
+(s/defn disable-bots :- s/Any [vsa :- schem/vsa]
+  (let [key (h/->unique-key vsa)
+        lvl (:level (key @autobuy-state))]
+    (println "disabling autobuy for: " vsa " and level: " lvl)
+    (swap! autobuy-state dissoc key)
+    (stop (id (str "bot-" (h/->unique-key vsa))))))
 

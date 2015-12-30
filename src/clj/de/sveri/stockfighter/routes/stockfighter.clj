@@ -64,13 +64,13 @@
   (response {:ok "ok"}))
 
 (s/defn enable-bots :- s/Any
-  [{:keys [venue stock account] :as order} :- schem/new-batch-order]
-  (bots/enable-autobuy venue stock account order (:level order))
+  [order :- schem/new-batch-order]
+  (bots/enable-bots (select-keys order [:venue :stock :account]) order (:level order))
   (response {:ok "ok"}))
 
 (s/defn stop-bots :- s/Any
   [vsa :- schem/vsa]
-  (bots/disable-autobuy vsa)
+  (bots/disable-bots vsa)
   (response {:ok "ok"}))
 
 (defn stockfighter-routes [websockets]

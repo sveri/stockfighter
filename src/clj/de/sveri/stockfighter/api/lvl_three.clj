@@ -103,8 +103,7 @@
 (def counter-order (atom nil))
 
 (s/defn start-lvl-three :- s/Any
-  [{:keys [venue stock account]} :- schem/vsa orderbook :- schem/orderbooks
-   booking :- (s/atom schem/booking)]
+  [{:keys [venue stock account]} :- schem/vsa orderbook :- schem/orderbooks]
   ;(println (first (:asks (first orderbook))))
   (let [ask (first (:asks (first orderbook)))
         bids (first (:bids (first orderbook)))
