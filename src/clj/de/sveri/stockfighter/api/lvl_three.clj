@@ -30,47 +30,72 @@
 ;                                       (assoc b-old :position new-position
 ;                                                    :cash new-cash))))))))
 
+;(s/defn ->new-order-resp :- s/Any
+;  [venue :- s/Str stock :- s/Str account :- s/Str quote-history :- s/Any direction :- schem/direction
+;   qty :- s/Num & [given-price :- (s/maybe s/Num)]]
+;  (when-let [float-price (calc/get-avg-bid venue stock account quote-history 5)]
+;    (let [price (int float-price)
+;          order {:account   account :venue venue :stock stock
+;                 :price     (if (and given-price (< price given-price)) given-price price)
+;                 :qty       (if (= 0 qty) default-qty qty)
+;                 :direction direction
+;                 ;:orderType "limit"}]
+;                 :orderType "immediate-or-cancel"}]
+;
+;      (let [o-resp (api/new-order order)]
+;        ;(println "foo: " (:direction order) " - " given-price)
+;        ;(println o-resp)
+;        o-resp))))
+
 (s/defn ->new-order-resp :- s/Any
-  [venue :- s/Str stock :- s/Str account :- s/Str quote-history :- s/Any direction :- schem/direction
-   qty :- s/Num & [given-price :- (s/maybe s/Num)]]
-  (when-let [float-price (calc/get-avg-bid venue stock account quote-history 5)]
-    (let [price (int float-price)
-          order {:account   account :venue venue :stock stock
-                 :price     (if (and given-price (< price given-price)) given-price price)
-                 :qty       (if (= 0 qty) default-qty qty)
-                 :direction direction
-                 ;:orderType "limit"}]
-                 :orderType "immediate-or-cancel"}]
+  [venue :- s/Str stock :- s/Str account :- s/Str direction :- schem/direction
+   qty :- s/Num price :- s/Num]
+  (let [order {:account   account :venue venue :stock stock
+               :price     price
+               :qty       (if (= 0 qty) default-qty qty)
+               :direction direction
+               :orderType "limit"}]
+    ;:orderType "immediate-or-cancel"}]
 
-      (let [o-resp (api/new-order order)]
-        ;(println "foo: " (:direction order) " - " given-price)
-        ;(println o-resp)
-        o-resp))))
+    (let [o-resp (api/new-order order)]
+      ;(println "foo: " (:direction order) " - " given-price)
+      ;(println o-resp)
+      o-resp)))
 
-(s/defn buy-a-thing [venue stock account quote-history quote :- schem/quote]
-  (let [qty (if (< (:bidSize quote) default-qty) (:bidSize quote) default-qty)
-        order-response (->new-order-resp venue stock account quote-history "buy" qty (:bid quote))]
-    (println "qty " qty (:bidSize quote) (:bid quote))
-    (when (bought-sold-something? order-response)
-      #_(update-booking order-response booking)
-      #_(println "bought " order-response))))
-
-(s/defn sell-a-thing [venue stock account quote-history quote :- schem/quote]
-  (let [quote-price (:ask quote)
-        sell-response (->new-order-resp venue stock account quote-history "sell" (:askSize quote) quote-price)]
-    (when (bought-sold-something? sell-response)
-      #_(update-booking sell-response booking)
-      #_(println "sold: " sell-response))))
+;(s/defn buy-a-thing [venue stock account quote-history quote :- schem/quote]
+;  (let [qty (if (< (:bidSize quote) default-qty) (:bidSize quote) default-qty)
+;        order-response (->new-order-resp venue stock account quote-history "buy" qty (:bid quote))]
+;    (println "qty " qty (:bidSize quote) (:bid quote))
+;    (when (bought-sold-something? order-response)
+;      #_(update-booking order-response booking)
+;      #_(println "bought " order-response))))
+;
+;(s/defn sell-a-thing [venue stock account quote-history quote :- schem/quote]
+;  (let [quote-price (:ask quote)
+;        sell-response (->new-order-resp venue stock account quote-history "sell" (:askSize quote) quote-price)]
+;    (when (bought-sold-something? sell-response)
+;      #_(update-booking sell-response booking)
+;      #_(println "sold: " sell-response))))
 
 (s/defn start-lvl-three :- s/Any
   [{:keys [venue stock account]} :- schem/vsa quote-history :- s/Any quote :- schem/quote
    booking :- (s/atom schem/booking)]
-  ;(println (> -200 (get @booking :position 0)))
-  (cond
-    (< 200 (get @booking :position 0)) (sell-a-thing venue stock account quote-history quote)
-    (> -200 (get @booking :position 0)) (buy-a-thing venue stock account quote-history quote)
-    (= "buy" (buy-or-sell? venue stock account quote-history)) (buy-a-thing venue stock account quote-history quote)
-    (= "sell" (buy-or-sell? venue stock account quote-history)) (sell-a-thing venue stock account quote-history quote)
-    :else nil
-    ;:else (sell-a-thing venue stock account quote-history quote)
-    ))
+  ;(clojure.pprint/pprint quote)
+  (let [bid (:bid quote)
+        ask (:ask quote)]
+    (when (and ask bid)
+      (let [diff (- ask bid)
+            bid-adapted (int (+ bid (* 0.3 diff)))
+            ask-adapted (int (- ask (* 0.3 diff)))]
+        (println quote)
+        (println bid-adapted ask-adapted)
+        (->new-order-resp venue stock account "buy" 2 bid-adapted)
+        (->new-order-resp venue stock account "sell" 2 ask-adapted))))
+  #_(cond
+      (< 200 (get @booking :position 0)) (sell-a-thing venue stock account quote-history quote)
+      (> -200 (get @booking :position 0)) (buy-a-thing venue stock account quote-history quote)
+      (= "buy" (buy-or-sell? venue stock account quote-history)) (buy-a-thing venue stock account quote-history quote)
+      (= "sell" (buy-or-sell? venue stock account quote-history)) (sell-a-thing venue stock account quote-history quote)
+      :else nil
+      ;:lse (sell-a-thing venue stock account quote-history quote)
+      ))

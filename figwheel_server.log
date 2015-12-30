@@ -1936,3 +1936,60 @@ notifying browser that file changed:  out\de\sveri\stockfighter\level.js
 [0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
 notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
 [32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.776 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  resources/public/js/compiled/out/goog/deps.js
+notifying browser that file changed:  resources/public/js/compiled/out/cljs_deps.js
+notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 1.756 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 1.117 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 1.725 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+WARNING: Use of undeclared Var de.sveri.stockfighter.overview/init-chart at line 67 src\cljs\de\sveri\stockfighter\overview.cljs
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.694 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+[31mCompiling "resources/public/js/compiled/app.js" failed.
+[0mERROR: Invalid token: :packages: on file C:\Users\sveri\IdeaProjects\stockfigherui\src\cljs\de\sveri\stockfighter\overview.cljs, line 67, column 62
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.441 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+[31mCompiling "resources/public/js/compiled/app.js" failed.
+[0mERROR: Invalid token: :packages: on file C:\Users\sveri\IdeaProjects\stockfigherui\src\cljs\de\sveri\stockfighter\overview.cljs, line 67, column 62
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.371 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+[31mCompiling "resources/public/js/compiled/app.js" failed.
+[0mERROR: Invalid token: :packages: on file C:\Users\sveri\IdeaProjects\stockfigherui\src\cljs\de\sveri\stockfighter\overview.cljs, line 67, column 62
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.529 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.875 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.669 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.594 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.62 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.615 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.737 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.579 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 1.542 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.831 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.801 seconds.[0m

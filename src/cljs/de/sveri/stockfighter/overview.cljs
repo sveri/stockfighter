@@ -62,8 +62,14 @@
      [exec/exec-page state]
      ]))
 
+;(defn init-chart [state]
+;  ;google.load('visualization', '1.1', {packages: ['line']});
+;  (.load js/google "visualization" "1.1" (clj->js {:packages ["line"]}))
+;  (let [table (js/google.visualization.DataTable.)])
+;  )
+
 (defn ^:export main []
   (qt/start-router! state)
-  ;(lp/start-game state)
+  ;(init-chart state)
   (reagent/render-component (fn [] [main-page]) (h/get-elem "app")))
 

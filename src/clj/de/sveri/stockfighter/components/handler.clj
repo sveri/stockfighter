@@ -1,7 +1,7 @@
 (ns de.sveri.stockfighter.components.handler
   (:require [compojure.core :refer [defroutes routes]]
             [noir.response :refer [redirect]]
-            [com.stuartsierra.component :as component]
+            #_[com.stuartsierra.component :as component]
             [noir.util.middleware :refer [app-handler]]
             [ring.middleware.defaults :refer [site-defaults]]
             [ring.middleware.file-info :refer [wrap-file-info]]
@@ -9,10 +9,10 @@
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [compojure.route :as route]
-    #_[mount.core :refer [defstate]]
-    ;[de.sveri.stockfighter.components.config :refer [config]]
-    ;[de.sveri.stockfighter.components.locale :refer [get-tconfig]]
-    ;        [de.sveri.stockfighter.components.websockets :refer [ws]]
+    [mount.core :refer [defstate]]
+    [de.sveri.stockfighter.components.config :refer [config]]
+    [de.sveri.stockfighter.components.locale :refer [get-tconfig]]
+            [de.sveri.stockfighter.components.websockets :refer [ws]]
             [de.sveri.stockfighter.routes.home :refer [home-routes]]
             [de.sveri.stockfighter.routes.cc :refer [cc-routes]]
             [de.sveri.stockfighter.routes.user :refer [user-routes registration-routes]]
@@ -91,15 +91,15 @@
         (wrap-file-info)
         )))
 
-(defrecord Handler [config locale websockets]
-  component/Lifecycle
-  (start [comp]
-    (assoc comp :handler (get-handler (:config config) locale websockets)))
-  (stop [comp]
-    (assoc comp :handler nil)))
+;(defrecord Handler [config locale websockets]
+;  component/Lifecycle
+;  (start [comp]
+;    (assoc comp :handler (get-handler (:config config) locale websockets)))
+;  (stop [comp]
+;    (assoc comp :handler nil)))
+;
+;(defn new-handler []
+;  (map->Handler {}))
 
-(defn new-handler []
-  (map->Handler {}))
-
-;(defstate handler :start (get-handler config (get-tconfig) ws)
-;          :stop :stopped)
+(defstate handler :start (get-handler config (get-tconfig) ws)
+          :stop :stopped)

@@ -19,6 +19,10 @@
 ; nav = cash + (shares * share_price)
 (def booking (atom {:nav 0 :position 0 :cash 0}))
 
+(def order-book (atom {}))
+
+(add-watch order-book :print-watch (fn [_ _ _ new] (clojure.pprint/pprint new)))
+
 
 (s/defn parse-quote :- s/Any
   [vsa :- schem/vsa quote-response :- s/Str]

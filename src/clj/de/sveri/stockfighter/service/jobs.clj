@@ -49,3 +49,15 @@
 
 (defn delete-game-info [vsa]
   (stop (id (keyword (str "game-info" (h/->unique-key vsa))))))
+
+
+(s/defn start-order-book* :- s/Any
+  [venue stock orderbook-atom]
+  (reset! orderbook-atom (stock-api/->orderbook venue stock)))
+
+(s/defn start-order-book :- s/Any
+  [venue stock orderbook-atom]
+  (schedule #(start-order-book* venue stock orderbook-atom) (-> (id (str "order-book" venue stock)) (every 2 :seconds))))
+
+(defn stop-order-book [venue stock]
+  (stop (id (str "order-book" venue stock))))
