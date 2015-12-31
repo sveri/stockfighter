@@ -2,11 +2,10 @@
   (:require [gniazdo.core :as ws]
             [clojure.data.json :as json]
             [schema.core :as s]
-            [clj-time.format :as f]
             [de.sveri.stockfighter.api.config :as conf]
             [de.sveri.stockfighter.schema-api :as schem]
-            [de.sveri.stockfighter.api.api :as api]
             [de.sveri.stockfighter.service.helper :as h]
+            [de.sveri.stockfighter.api.lvl-three :as three]
             [com.rpl.specter :as spec]))
 
 (def quotes-socket (atom {}))
@@ -21,7 +20,15 @@
 
 (def order-book (atom {}))
 
-;(add-watch order-book :print-watch (fn [_ _ _ new] (clojure.pprint/pprint new) new))
+(def active-bots (atom 0))
+
+(add-watch order-book :lvl-three
+           (fn [_ _ _ new] #_(clojure.pprint/pprint (first (second (first new))))
+             (let [order (first (second (first new)))]
+               (when (< @active-bots 8)
+                 (three/start-on-order (:venue order) (:symbol order)
+                                       (get-in @h/common-state [:game-info :account]) order
+                                       active-bots)))))
 
 (def test-book
   '({:ok     true,

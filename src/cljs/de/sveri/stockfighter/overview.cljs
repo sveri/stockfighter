@@ -94,12 +94,12 @@
                      [:div
                       [game/game-page local-state state]
                       [:hr]
-                      [chart @state]
+                      ;[chart @state]
                       ;[no/new-order-page local-state state]
                       ;[:hr]
-                      ;[tp/ticker-page local-state state]
+                      [tp/ticker-page local-state state]
                       ;[:hr]
-                      ;[exec/exec-page state]
+                      [exec/exec-page state]
                       ])})
   )
 
