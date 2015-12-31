@@ -41,7 +41,12 @@
 
 (s/defn ->order-status :- (s/maybe schem/order) [venue stock id :- s/Num]
   (parse-response (client/get (str base-uri "venues/" venue "/stocks/" stock "/orders/" id)
-                               (with-key-and-defaults))))
+                              (with-key-and-defaults))))
+
+(s/defn delete-order :- (s/maybe schem/order) [venue stock id :- s/Num]
+  (parse-response (client/delete (str base-uri "venues/" venue "/stocks/" stock "/orders/" id)
+                              (with-key-and-defaults))))
+
 
 (s/defn ->orders :- (s/cond-pre {:ok s/Bool :orders schem/orders} schem/response-error)
   [venue :- s/Str stock :- s/Str account :- s/Str]

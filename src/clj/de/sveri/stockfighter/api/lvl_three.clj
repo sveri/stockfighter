@@ -109,7 +109,17 @@
 
 (def counter-order (atom {:tries 0 :order nil :order-result nil}))
 
-(add-watch counter-order :co-watch (fn [_ _ _ new] #_(println new) new))
+;(add-watch counter-order :co-watch (fn [_ _ _ new] #_(println new) new))
+
+(defn delete-and-reorder [venue stock account new-qty a]
+  (let [order-result (:order-result @a)
+        _ (api/delete-order venue stock (:id order-result))
+        new-sell-order {:account   account :venue venue :stock stock
+                   :price     (- (:price order-result) 20)
+                   :qty       new-qty
+                   :direction "sell"
+                   :orderType "limit"}]
+    (reset! a {:tries 0 :order new-sell-order :order-result nil})))
 
 (defmulti sell-counter-order (fn [_ _ a] (:order-result @a)))
 
@@ -123,10 +133,11 @@
   (let [order-status (api/->order-status venue stock (get-in @a [:order-result :id]))]
     (if (= 0 (:qty order-status))
       (reset! a {:tries 0 :order nil :order-result nil})
-      (swap! a update :tries + 1))))
+      (if (= 20 (:tries @a))
+        (delete-and-reorder venue stock (get-in @a [:order :account]) (:qty order-status) a)
+        (swap! a update :tries + 1)))))
 
 (defn buy-count-order [venue stock account orderbook]
-  ;(println orderbook)
   (when-let [ask (first (:asks (first orderbook)))]
     (let [ask-price (:price ask)
           bids (first (:bids (first orderbook)))
