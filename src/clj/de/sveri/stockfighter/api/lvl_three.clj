@@ -101,91 +101,60 @@
 ;      ;:lse (sell-a-thing venue stock account quote-history quote)
 ;      ))
 
-(defn avg-ask [book]
-  ;(let [prices (spec/select [spec/ALL :asks spec/FIRST :price] (subvec (into [] (rseq (into [] book))) 10))]
-  (let [prices (spec/select [spec/ALL :asks spec/FIRST :price] book)]
-    (int (/ (reduce + prices) (count prices)))))
+;(defn avg-ask [book]
+;  (let [prices (spec/select [spec/ALL :asks spec/FIRST :price] book)]
+;    (int (/ (reduce + prices) (count prices)))))
+
+(def ^:dynamic unlocked true)
 
 (def counter-order (atom {:tries 0 :order nil :order-result nil}))
 
 (add-watch counter-order :co-watch (fn [_ _ _ new] #_(println new) new))
 
-(defmulti sell-counter-order (fn [a] (:order-result @a)))
+(defmulti sell-counter-order (fn [_ _ a] (:order-result @a)))
 
-(defmethod sell-counter-order nil [a]
-  (let [order-result (api/new-order (:order @count))]
+(defmethod sell-counter-order nil [_ _ a]
+  (let [order-result (api/new-order (:order @a))]
     (if (= 0 (:qty order-result))
-      (reset! counter-order {:tries 0 :order nil :order-result nil}))))
+      (reset! a {:tries 0 :order nil :order-result nil})
+      (swap! a assoc :order-result order-result))))
 
-(defn sell-counter-order []
-  #_(do
-
-    (if (< (:position @booking) 0)
-      (swap! counter-order assoc :order nil)
-      (do
-        (api/new-order (:order @counter-order))
-        (swap! counter-order update :tries + 1)
-        (when (= 5 (:tries @counter-order))
-          (swap! counter-order (fn [a] (let [price (get-in a [:order :price])]
-                                         (assoc-in a [:order :price] (- price 30))))))
-        (when (= 10 (:tries @counter-order))
-          (swap! counter-order assoc :order nil)))))
-  )
+(defmethod sell-counter-order :default [venue stock a]
+  (let [order-status (api/->order-status venue stock (get-in @a [:order-result :id]))]
+    (if (= 0 (:qty order-status))
+      (reset! a {:tries 0 :order nil :order-result nil})
+      (swap! a update :tries + 1))))
 
 (defn buy-count-order [venue stock account orderbook]
-  (let [ask (first (:asks (first orderbook)))
-        ask-price (:price ask)
-        bids (first (:bids (first orderbook)))
-        bid-price (:price bids)
-        spread (if (and ask-price bid-price) (- ask-price bid-price) nil)
-        qty (if (and ask (< (:qty ask) 31)) (:qty ask) 10)
-        buy-order {:account   account :venue venue :stock stock
-                   :price     ask-price
-                   :qty       qty
-                   :direction "buy"
-                   :orderType "immediate-or-cancel"}
-        sell-order {:account   account :venue venue :stock stock
-                    :price     (if (and spread (< spread 100))
-                                 (+ ask-price (- spread 20)) (+ ask-price 50))
-                    :qty       qty
-                    :direction "sell"
-                    :orderType "limit"}]
-    (when ask
-      (let [o-result (api/new-order buy-order)]
-        (when (< 0 (:totalFilled o-result))
-          (swap! counter-order assoc :order sell-order))))))
+  ;(println orderbook)
+  (when-let [ask (first (:asks (first orderbook)))]
+    (let [ask-price (:price ask)
+          bids (first (:bids (first orderbook)))
+          bid-price (:price bids)
+          spread (if (and ask-price bid-price) (- ask-price bid-price) nil)
+          qty (if (and ask (< (:qty ask) 31)) (:qty ask) 10)
+          buy-order {:account   account :venue venue :stock stock
+                     :price     ask-price
+                     :qty       qty
+                     :direction "buy"
+                     :orderType "immediate-or-cancel"}
+          sell-order {:account   account :venue venue :stock stock
+                      :price     (if (and spread (< spread 100))
+                                   (+ ask-price (- spread 20)) (+ ask-price 50))
+                      :qty       qty
+                      :direction "sell"
+                      :orderType "limit"}]
+      (when ask
+        (let [o-result (api/new-order buy-order)]
+          (when (< 0 (:totalFilled o-result))
+            (swap! counter-order assoc :order sell-order)))))))
 
 
 (s/defn start-lvl-three :- s/Any
   [{:keys [venue stock account]} :- schem/vsa orderbook :- schem/orderbooks booking :- (s/atom schem/booking)]
-  (let [ask (first (:asks (first orderbook)))
-        ask-price (:price ask)
-        bids (first (:bids (first orderbook)))
-        bid-price (:price bids)
-        spread (if (and ask-price bid-price) (- ask-price bid-price) nil)
-        ;avg-ask-price (avg-ask orderbook)
-        qty (if (and ask (< (:qty ask) 31)) (:qty ask) 10)]
-    (println bid-price " - " (:price (:order @counter-order)))
+  (when unlocked
+    (alter-var-root #'unlocked (fn [_] false))
     (if (:order @counter-order)
-      ;(let [order-response (api/new-order (:order @counter-order))]
-        ;(if (= qty (:totalFilled order-response))
-        ;(if (and (< 0 (:position booking)) (< 0 (:totalFilled order-response)))
-      (sell-counter-order)
-      (buy-count-order venue stock account orderbook)
-      ;)
-      #_(when (and ask (< (:position @booking) 50))
-        (let [buy-order {:account   account :venue venue :stock stock
-                         :price     ask-price
-                         :qty       qty
-                         :direction "buy"
-                         :orderType "immediate-or-cancel"}
-              sell-order {:account   account :venue venue :stock stock
-                          :price     (if (and spread (< spread 100))
-                                       (+ ask-price (- spread 20)) (+ ask-price 50))
-                          :qty       qty
-                          :direction "sell"
-                          :orderType "limit"}
-              order-response (api/new-order buy-order)]
-          (when (= qty (:totalFilled order-response))
-            (reset! counter-order {:tries 0 :order sell-order})))))
-    ))
+       (sell-counter-order venue stock counter-order)
+       (buy-count-order venue stock account orderbook))
+    (alter-var-root #'unlocked (fn [_] true))))

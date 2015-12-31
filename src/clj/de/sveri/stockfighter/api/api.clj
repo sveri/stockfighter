@@ -39,6 +39,10 @@
   (parse-response (client/post (str base-uri "venues/" (:venue order) "/stocks/" (:stock order) "/orders")
                                (with-key-and-defaults {:body (json/write-str order)}))))
 
+(s/defn ->order-status :- (s/maybe schem/order) [venue stock id :- s/Num]
+  (parse-response (client/get (str base-uri "venues/" venue "/stocks/" stock "/orders/" id)
+                               (with-key-and-defaults))))
+
 (s/defn ->orders :- (s/cond-pre {:ok s/Bool :orders schem/orders} schem/response-error)
   [venue :- s/Str stock :- s/Str account :- s/Str]
   (timb/info (format "fetching orders for venue: %s - stock: %s - account: %s" venue stock account))
