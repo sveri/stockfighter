@@ -16,21 +16,28 @@
 
 
 ; nav = cash + (shares * share_price)
-(def booking (atom {:nav 0 :position 0 :cash 0}))
+(def booking (atom {:nav 0 :position 0 :cash 0 :avg-bid 0 :avg-ask 0 :ask-count 0 :bid-count 0 :buy-sell-lock false}))
 
 (def active-bots (atom 0))
 
-(def open-orders (atom []))
-(add-watch open-orders :orders-validation (fn [_ _ _ new] (s/validate schem/orders new)))
+;(def open-orders (atom []))
+;(add-watch open-orders :orders-validation (fn [_ _ _ new] (s/validate schem/orders new)))
+
 
 (def order-book (atom {}))
 (add-watch order-book :lvl-three
            (fn [_ _ _ new] #_(clojure.pprint/pprint (first (second (first new))))
-             (let [order (first (second (first new)))]
-                 (when (< (count @open-orders) 1)
-                 (three/start-on-order (:venue order) (:symbol order)
-                                       (get-in @h/common-state [:game-info :account]) order
-                                       open-orders)))))
+
+             (when-not (:buy-sell-lock @booking)
+               (swap! booking assoc :buy-sell-lock true)
+               (let [order (first (second (first new)))]
+                (three/buy-or-sell-when-enough (:venue order) (:symbol order)
+                                               (get-in @h/common-state [:game-info :account]) order booking)
+                #_(when (< (count @open-orders) 1)
+                    (three/start-on-order (:venue order) (:symbol order)
+                                          (get-in @h/common-state [:game-info :account]) order
+                                          open-orders))
+                (swap! booking assoc :buy-sell-lock false)))))
 
 
 
@@ -105,34 +112,43 @@
                           (.printStackTrace %)))))
 
 (s/defn update-booking :- s/Any [{:keys [order]} :- schem/execution book-atom :- s/Any]
-  (let [fills (:fills order)]
+  (let [fills (:fills order)
+        buy-or-sell (:direction order)]
     (doseq [fill fills]
       (let [add-min-position? (if (= (:direction order) "buy") + -)
             add-min-cash? (if (= (:direction order) "buy") - +)]
         (swap! book-atom (fn [b-old] (let [new-position (add-min-position? (:position b-old) (:qty fill))
-                                           new-cash (add-min-cash? (:cash b-old) (* (:price fill) (:qty fill)))]
+                                           new-cash (add-min-cash? (:cash b-old) (* (:price fill) (:qty fill)))
+                                           avg-key (if (= "buy" buy-or-sell) :avg-ask :avg-bid)
+                                           avg-count-key (if (= "buy" buy-or-sell) :ask-count :bid-count)
+                                           old-avg (avg-key b-old)
+                                           old-count (avg-count-key b-old)
+                                           new-avg (int (/ (+ old-avg (:price fill)) (if (= old-count 0) 1 2)))]
                                        (assoc b-old :position new-position
-                                                    :cash new-cash))))))))
+                                                    :cash new-cash
+                                                    avg-count-key (inc old-count)
+                                                    avg-key new-avg))))))))
 
 
-(s/defn clean-open-order :- s/Any [execution :- schem/execution open-orders :- (s/atom schem/orders)]
-  ;(println execution " - ")
-  ;(println "orders: " open-orders)
-  #_(println
-
-          (remove #(=
-                    (:id %)
-                    (get-in execution [:order :id]))
-                  @open-orders))
-  (swap! open-orders (fn [a] (into [] (remove #(= (:id %) (get-in execution [:order :id])) a)))))
+;(s/defn clean-open-order :- s/Any [execution :- schem/execution open-orders :- (s/atom schem/orders)]
+;  ;(println execution " - ")
+;  ;(println "orders: " open-orders)
+;  #_(println
+;
+;      (remove #(=
+;                (:id %)
+;                (get-in execution [:order :id]))
+;              @open-orders))
+;  (swap! open-orders (fn [a] (into [] (remove #(= (:id %) (get-in execution [:order :id])) a)))))
 
 (s/defn parse-execution :- s/Any
   [venue stock account execution-response :- s/Str]
   (let [execution (json/read-str execution-response :key-fn keyword :value-fn h/api->date)]
     (if (:ok execution)
       (do (swap! execution-history update (h/->unique-key venue stock account) conj execution)
-          (clean-open-order execution open-orders)
-          (update-booking execution booking))
+          ;(clean-open-order execution open-orders)
+          (update-booking execution booking)
+          )
       (println "something else happened: " execution-response))))
 
 (s/defn connect-executions :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa]

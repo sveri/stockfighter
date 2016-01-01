@@ -115,10 +115,10 @@
   (let [order-result (:order-result @a)
         _ (api/delete-order venue stock (:id order-result))
         new-sell-order {:account   account :venue venue :stock stock
-                   :price     (- (:price order-result) 20)
-                   :qty       new-qty
-                   :direction "sell"
-                   :orderType "limit"}]
+                        :price     (- (:price order-result) 20)
+                        :qty       new-qty
+                        :direction "sell"
+                        :orderType "limit"}]
     (reset! a {:tries 0 :order new-sell-order :order-result nil})))
 
 (defmulti sell-counter-order (fn [_ _ a] (:order-result @a)))
@@ -166,8 +166,8 @@
   (when unlocked
     (alter-var-root #'unlocked (fn [_] false))
     (if (:order @counter-order)
-       (sell-counter-order venue stock counter-order)
-       (buy-count-order venue stock account (first orderbook)))
+      (sell-counter-order venue stock counter-order)
+      (buy-count-order venue stock account (first orderbook)))
     (alter-var-root #'unlocked (fn [_] true))))
 
 
@@ -182,15 +182,15 @@
             (Thread/sleep 500)
             (recur))
           #_(if (= 0 (:qty status))
-            (swap! active-bots dec)
-            (do (Thread/sleep 500) (recur)))))
+              (swap! active-bots dec)
+              (do (Thread/sleep 500) (recur)))))
       #_(do #_(println "waiting id: " (:id sell-result))
-        (Thread/sleep 1000)
+          (Thread/sleep 1000)
           (let [status (api/->order-status venue stock (:id sell-result))]
             (if (< 0 (:qty status))
               #_(do #_(println "delete and reorder: " (:id status))
-                  (let [delete-order-response      (api/delete-order venue stock (:id status))]
-                    #_(println delete-order-response  " -= " (< (:totalFilled delete-order-response) (:qty status)) " - " (:qty delete-order-response) " - " (:qty status))
+                  (let [delete-order-response (api/delete-order venue stock (:id status))]
+                    #_(println delete-order-response " -= " (< (:totalFilled delete-order-response) (:qty status)) " - " (:qty delete-order-response) " - " (:qty status))
                     (if (< (:totalFilled delete-order-response) (:qty status))
                       (sell-order! {:account   account :venue venue :stock stock
                                     :price     (- (:price sellorder) 20)
@@ -216,7 +216,7 @@
                      :orderType "immediate-or-cancel"}
           sell-order {:account   account :venue venue :stock stock
                       :price     (+ ask-price 20) #_(if (and spread (< spread 100))
-                                   (+ ask-price (- spread 20)) (+ ask-price 50))
+                                                      (+ ask-price (- spread 20)) (+ ask-price 50))
                       :qty       qty
                       :direction "sell"
                       :orderType "limit"}]
@@ -224,3 +224,58 @@
         (let [o-result (api/new-order buy-order)]
           (when (< 0 (:totalFilled o-result))
             (sell-order! sell-order open-orders (:totalFilled o-result))))))))
+
+
+(s/defn update-booking :- s/Any [order :- schem/order book-atom :- s/Any]
+  (let [fills (:fills order)
+        buy-or-sell (:direction order)]
+    (doseq [fill fills]
+      (let [add-min-position? (if (= (:direction order) "buy") + -)
+            add-min-cash? (if (= (:direction order) "buy") - +)]
+        (swap! book-atom (fn [b-old] (let [new-position (add-min-position? (:position b-old) (:qty fill))
+                                           new-cash (add-min-cash? (:cash b-old) (* (:price fill) (:qty fill)))
+                                           avg-key (if (= "buy" buy-or-sell) :avg-ask :avg-bid)
+                                           avg-count-key (if (= "buy" buy-or-sell) :ask-count :bid-count)
+                                           old-avg (avg-key b-old)
+                                           old-count (avg-count-key b-old)
+                                           new-avg (int (/ (+ old-avg (:price fill)) (if (= old-count 0) 1 2)))]
+                                       (assoc b-old :position new-position
+                                                    :cash new-cash
+                                                    avg-count-key (inc old-count)
+                                                    avg-key new-avg))))))))
+
+
+(defmulti buy-or-sell-when-enough (fn [_ _ _ _ booking] (< 20 (:position @booking))))
+
+(defmethod buy-or-sell-when-enough true
+  [venue stock account orderbook booking]
+  (when-let [bid (first (:bids orderbook))]
+    (let [position (:position @booking)
+          bid-price (:price bid)
+          qty (min position (:qty bid))
+          new-order {:account   account :venue venue :stock stock
+                     :price     bid-price
+                     :qty       qty
+                     :direction "sell"
+                     :orderType "immediate-or-cancel"}]
+      (when (or (= 0 (:avg-ask @booking)) (< (:avg-ask @booking) bid-price))
+        (api/new-order new-order)))))
+
+(defmethod buy-or-sell-when-enough false
+  [venue stock account orderbook booking]
+  (when-let [ask (first (:asks orderbook))]
+    (let [ask-price (:price ask)
+          qty (if (and ask (< (:qty ask) 31)) (:qty ask) 10)
+          buy-order {:account   account :venue venue :stock stock
+                     :price     ask-price
+                     :qty       qty
+                     :direction "buy"
+                     :orderType "immediate-or-cancel"}]
+      (println  ask-price " - " (:avg-bid @booking) )
+      (when (or (= 0 (:avg-bid @booking)) (< ask-price (:avg-bid @booking)))
+        (api/new-order buy-order)))))
+
+
+;(s/defn only-buy-and-sell-when-enough
+;  [venue stock account orderbook :- schem/order-book booking :- (s/atom schem/booking)]
+;  )
