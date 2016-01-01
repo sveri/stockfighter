@@ -78,6 +78,8 @@
 
 
 
+
+
 ; cljs
 (def ticker {:bid-avg s/Num :bid-avg-last-10 s/Num :bid-avg-last-100 s/Num})
 

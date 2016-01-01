@@ -171,12 +171,17 @@
     (alter-var-root #'unlocked (fn [_] true))))
 
 
-(s/defn sell-order! [{:keys [venue stock account] :as sellorder} :- schem/new-order active-bots :- (s/atom s/Num) target-qty :- s/Num]
+(s/defn sell-order! [{:keys [venue stock account] :as sellorder} :- schem/new-order open-orders :- (s/atom schem/orders)
+                     target-qty :- s/Num]
   (let [sell-result (api/new-order (assoc sellorder :qty target-qty))]
-    (if (< 0 (:qty sell-result))
+    (when (< 0 (:qty sell-result))
+      (swap! open-orders conj sell-result)
       (loop []
         (let [status (api/->order-status venue stock (:id sell-result))]
-          (if (= 0 (:qty status))
+          (when (< 0 (:qty status))
+            (Thread/sleep 500)
+            (recur))
+          #_(if (= 0 (:qty status))
             (swap! active-bots dec)
             (do (Thread/sleep 500) (recur)))))
       #_(do #_(println "waiting id: " (:id sell-result))
@@ -195,9 +200,9 @@
                                    active-bots)
                       (swap! active-bots dec))))
               (swap! active-bots dec))))
-      (swap! active-bots dec))))
+      )))
 
-(s/defn start-on-order [venue stock account orderbook :- schem/order-book active-bots :- (s/atom s/Num)]
+(s/defn start-on-order [venue stock account orderbook :- schem/order-book open-orders :- (s/atom schem/orders)]
   (when-let [ask (first (:asks orderbook))]
     (let [ask-price (:price ask)
           bids (first (:bids orderbook))
@@ -210,7 +215,7 @@
                      :direction "buy"
                      :orderType "immediate-or-cancel"}
           sell-order {:account   account :venue venue :stock stock
-                      :price     (if (and spread (< spread 100))
+                      :price     (+ ask-price 20) #_(if (and spread (< spread 100))
                                    (+ ask-price (- spread 20)) (+ ask-price 50))
                       :qty       qty
                       :direction "sell"
@@ -218,5 +223,4 @@
       (when ask
         (let [o-result (api/new-order buy-order)]
           (when (< 0 (:totalFilled o-result))
-            (swap! active-bots inc)
-            (sell-order! sell-order active-bots (:totalFilled o-result))))))))
+            (sell-order! sell-order open-orders (:totalFilled o-result))))))))

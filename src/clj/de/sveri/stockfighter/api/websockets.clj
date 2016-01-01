@@ -18,17 +18,21 @@
 ; nav = cash + (shares * share_price)
 (def booking (atom {:nav 0 :position 0 :cash 0}))
 
-(def order-book (atom {}))
-
 (def active-bots (atom 0))
 
+(def open-orders (atom []))
+(add-watch open-orders :orders-validation (fn [_ _ _ new] (s/validate schem/orders new)))
+
+(def order-book (atom {}))
 (add-watch order-book :lvl-three
            (fn [_ _ _ new] #_(clojure.pprint/pprint (first (second (first new))))
              (let [order (first (second (first new)))]
-               (when (< @active-bots 8)
+                 (when (< (count @open-orders) 1)
                  (three/start-on-order (:venue order) (:symbol order)
                                        (get-in @h/common-state [:game-info :account]) order
-                                       active-bots)))))
+                                       open-orders)))))
+
+
 
 (def test-book
   '({:ok     true,
@@ -111,11 +115,23 @@
                                                     :cash new-cash))))))))
 
 
+(s/defn clean-open-order :- s/Any [execution :- schem/execution open-orders :- (s/atom schem/orders)]
+  ;(println execution " - ")
+  ;(println "orders: " open-orders)
+  #_(println
+
+          (remove #(=
+                    (:id %)
+                    (get-in execution [:order :id]))
+                  @open-orders))
+  (swap! open-orders (fn [a] (into [] (remove #(= (:id %) (get-in execution [:order :id])) a)))))
+
 (s/defn parse-execution :- s/Any
   [venue stock account execution-response :- s/Str]
   (let [execution (json/read-str execution-response :key-fn keyword :value-fn h/api->date)]
     (if (:ok execution)
       (do (swap! execution-history update (h/->unique-key venue stock account) conj execution)
+          (clean-open-order execution open-orders)
           (update-booking execution booking))
       (println "something else happened: " execution-response))))
 
