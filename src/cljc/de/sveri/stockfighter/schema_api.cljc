@@ -55,7 +55,7 @@
 (def execution {:ok    s/Bool :account s/Str :venue s/Str :symbol s/Str :order order :standingId s/Num :incomingId s/Num
                 :price s/Num :filled s/Num :filledAt s/Inst :standingComplete s/Bool :incomingComplete s/Bool})
 
-(def execution-stream {:spread s/Num :bids-avg s/Num :asks-avg s/Num})
+(def execution-stream {:spread s/Num :bids-avg s/Num :asks-avg s/Num :last-execution (s/maybe execution)})
 
 (def autobuy {s/Keyword new-batch-order})
 
@@ -84,19 +84,20 @@
 ; cljs
 (def ticker {:bid-avg s/Num :bid-avg-last-10 s/Num :bid-avg-last-100 s/Num})
 
-(def state {(s/optional-key :orderbook)  [order-book]
+(def state {(s/optional-key :orderbook)       [order-book]
             ;(s/optional-key :level)      levels
-            (s/optional-key :orders)     orders
-            (s/optional-key :ticker)     ticker
-            (s/optional-key :game-state) game-state
-            (s/optional-key :executions) execution-stream
-            (s/optional-key :game-info)  game-info
-            (s/optional-key :cur-level)  s/Str
+            (s/optional-key :orders)          orders
+            (s/optional-key :ticker)          ticker
+            (s/optional-key :game-state)      game-state
+            (s/optional-key :executions)      execution-stream
+            (s/optional-key :executions-full) [(s/maybe execution)]
+            (s/optional-key :game-info)       game-info
+            (s/optional-key :cur-level)       s/Str
 
-            (s/optional-key :new-order)  {(s/optional-key :price)      s/Num (s/optional-key :qty) s/Num
-                                          (s/optional-key :target-qty) s/Num
-                                          (s/optional-key :direction)  direction
-                                          (s/optional-key :orderType)  order-type}
+            (s/optional-key :new-order)       {(s/optional-key :price)      s/Num (s/optional-key :qty) s/Num
+                                               (s/optional-key :target-qty) s/Num
+                                               (s/optional-key :direction)  direction
+                                               (s/optional-key :orderType)  order-type}
             })
 
 (def local-state {(s/optional-key :instanceId) s/Num (s/optional-key :vsa) vsa})

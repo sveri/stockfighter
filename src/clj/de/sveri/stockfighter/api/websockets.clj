@@ -6,7 +6,9 @@
             [de.sveri.stockfighter.schema-api :as schem]
             [de.sveri.stockfighter.service.helper :as h]
             [de.sveri.stockfighter.api.lvl-three :as three]
-            [com.rpl.specter :as spec]))
+            [com.rpl.specter :as spec]
+            [clj-time.core :as time-core]
+            [clj-time.coerce :as time-coerce]))
 
 (def quotes-socket (atom {}))
 (def executions-socket (atom {}))
@@ -24,71 +26,31 @@
 ;(add-watch open-orders :orders-validation (fn [_ _ _ new] (s/validate schem/orders new)))
 
 
+(s/defn adapt-averages [booking-atom last-execution :- (s/maybe schem/execution)]
+  (let [now (time-coerce/to-long (time-core/now))
+        last-exec (time-coerce/to-long (time-coerce/from-date (:filledAt last-execution)))]
+    (when (and (not= 0 (:ask-count @booking-atom)) (not= 0 (:bid-count @booking-atom))
+               (< 10000 (- now last-exec))
+               (< (:avg-ask @booking-atom) (:avg-bid @booking-atom)))
+      (swap! booking-atom (fn [a] (-> (update a :avg-bid + 100)
+                                      (update :avg-ask - 100))))
+      (Thread/sleep 500))))
+
 (def order-book (atom {}))
 (add-watch order-book :lvl-three
-           (fn [_ _ _ new] #_(clojure.pprint/pprint (first (second (first new))))
-
+           (fn [_ _ _ new]
              (when-not (:buy-sell-lock @booking)
                (swap! booking assoc :buy-sell-lock true)
-               (let [order (first (second (first new)))]
-                (three/buy-or-sell-when-enough (:venue order) (:symbol order)
-                                               (get-in @h/common-state [:game-info :account]) order booking)
-                #_(when (< (count @open-orders) 1)
-                    (three/start-on-order (:venue order) (:symbol order)
-                                          (get-in @h/common-state [:game-info :account]) order
-                                          open-orders))
-                (swap! booking assoc :buy-sell-lock false)))))
+               (let [order (first (second (first new)))
+                     k (h/->unique-key {:venue (:venue order) :stock (:symbol order)
+                                        :account (get-in @h/common-state [:game-info :account])})]
+                 (adapt-averages booking (first (k @execution-history)))
+                 (three/buy-or-sell-when-enough (:venue order) (:symbol order)
+                                                (get-in @h/common-state [:game-info :account]) order booking)
+                 (swap! booking assoc :buy-sell-lock false)))))
 
 
 
-(def test-book
-  '({:ok     true,
-     :venue  "MOEX",
-     :symbol "UUKG",
-     :ts     #inst "2015-12-30T15:00:34.598-00:00",
-     :bids
-             [{:price 9098, :qty 203, :isBuy true}
-              {:price 8943, :qty 459, :isBuy true}
-              {:price 8899, :qty 459, :isBuy true}
-              {:price 8855, :qty 459, :isBuy true}
-              {:price 8736, :qty 148, :isBuy true}],
-     :asks
-             [{:price 9143, :qty 40, :isBuy false}
-              {:price 9188, :qty 40, :isBuy false}
-              {:price 9233, :qty 40, :isBuy false}]}
-     {:ok     true,
-      :venue  "MOEX",
-      :symbol "UUKG",
-      :ts     #inst "2015-12-30T15:00:24.616-00:00",
-      :bids
-              [{:price 8793, :qty 203, :isBuy true}
-               {:price 8663, :qty 438, :isBuy true}
-               {:price 8620, :qty 438, :isBuy true}
-               {:price 8577, :qty 438, :isBuy true}],
-      :asks
-              [{:price 9175, :qty 47, :isBuy false}
-               {:price 9220, :qty 47, :isBuy false}
-               {:price 9265, :qty 15, :isBuy false}]}
-     {:ok     true,
-      :venue  "MOEX",
-      :symbol "UUKG",
-      :ts     #inst "2015-12-30T15:00:24.616-00:00",
-      :bids
-              [{:price 8793, :qty 203, :isBuy true}
-               {:price 8663, :qty 438, :isBuy true}
-               {:price 8620, :qty 438, :isBuy true}
-               {:price 8577, :qty 438, :isBuy true}],
-      :asks
-              [{:price 9175, :qty 47, :isBuy false}
-               {:price 9220, :qty 47, :isBuy false}
-               {:price 9265, :qty 15, :isBuy false}]}))
-
-((fn avg-ask [book]
-   ;(map #(get-in % [:asks :price]) book)
-   (let [prices (spec/select [spec/ALL :asks spec/FIRST :price] book)]
-     (int (/ (reduce + prices) (count prices))))
-   )
-  test-book)
 
 (s/defn parse-quote :- s/Any
   [{:keys [venue stock] :as vsa} :- schem/vsa quote-response :- s/Str]
@@ -130,17 +92,6 @@
                                                     avg-key new-avg))))))))
 
 
-;(s/defn clean-open-order :- s/Any [execution :- schem/execution open-orders :- (s/atom schem/orders)]
-;  ;(println execution " - ")
-;  ;(println "orders: " open-orders)
-;  #_(println
-;
-;      (remove #(=
-;                (:id %)
-;                (get-in execution [:order :id]))
-;              @open-orders))
-;  (swap! open-orders (fn [a] (into [] (remove #(= (:id %) (get-in execution [:order :id])) a)))))
-
 (s/defn parse-execution :- s/Any
   [venue stock account execution-response :- s/Str]
   (let [execution (json/read-str execution-response :key-fn keyword :value-fn h/api->date)]
@@ -175,10 +126,59 @@
   (close-all-sockets @executions-socket))
 
 
-; maybe need this when we need exact timestamp order and not the order received via ws
-;(swap! quote-history assoc (h/->unique-key venue stock account) (sorted-set-by compare-dates))
+
 
 ;
-;(defn compare-dates [a b]
-;  (let [a-long (t-c/to-long (:quoteTime a)) b-long (t-c/to-long (:quoteTime b))]
-;    (< a-long b-long)))
+;
+;
+;
+;
+;
+;(def test-book
+;  '({:ok     true,
+;     :venue  "MOEX",
+;     :symbol "UUKG",
+;     :ts     #inst "2015-12-30T15:00:34.598-00:00",
+;     :bids
+;             [{:price 9098, :qty 203, :isBuy true}
+;              {:price 8943, :qty 459, :isBuy true}
+;              {:price 8899, :qty 459, :isBuy true}
+;              {:price 8855, :qty 459, :isBuy true}
+;              {:price 8736, :qty 148, :isBuy true}],
+;     :asks
+;             [{:price 9143, :qty 40, :isBuy false}
+;              {:price 9188, :qty 40, :isBuy false}
+;              {:price 9233, :qty 40, :isBuy false}]}
+;     {:ok     true,
+;      :venue  "MOEX",
+;      :symbol "UUKG",
+;      :ts     #inst "2015-12-30T15:00:24.616-00:00",
+;      :bids
+;              [{:price 8793, :qty 203, :isBuy true}
+;               {:price 8663, :qty 438, :isBuy true}
+;               {:price 8620, :qty 438, :isBuy true}
+;               {:price 8577, :qty 438, :isBuy true}],
+;      :asks
+;              [{:price 9175, :qty 47, :isBuy false}
+;               {:price 9220, :qty 47, :isBuy false}
+;               {:price 9265, :qty 15, :isBuy false}]}
+;     {:ok     true,
+;      :venue  "MOEX",
+;      :symbol "UUKG",
+;      :ts     #inst "2015-12-30T15:00:24.616-00:00",
+;      :bids
+;              [{:price 8793, :qty 203, :isBuy true}
+;               {:price 8663, :qty 438, :isBuy true}
+;               {:price 8620, :qty 438, :isBuy true}
+;               {:price 8577, :qty 438, :isBuy true}],
+;      :asks
+;              [{:price 9175, :qty 47, :isBuy false}
+;               {:price 9220, :qty 47, :isBuy false}
+;               {:price 9265, :qty 15, :isBuy false}]}))
+;
+;((fn avg-ask [book]
+;   ;(map #(get-in % [:asks :price]) book)
+;   (let [prices (spec/select [spec/ALL :asks spec/FIRST :price] book)]
+;     (int (/ (reduce + prices) (count prices))))
+;   )
+;  test-book)

@@ -30,7 +30,7 @@
 
 (s/defn start-pass-executions :- s/Any [vsa :- schem/vsa {:keys [send-fn connected-uids]} :- s/Any]
   (let [key (keyword (str "executions" (h/->unique-key vsa)))]
-    (schedule #(start-pass-executions* vsa send-fn connected-uids) (-> (id key) (every 5 :seconds)))))
+    (schedule #(start-pass-executions* vsa send-fn connected-uids) (-> (id key) (every 1 :seconds)))))
 
 (defn delete-executions [vsa]
   (stop (id (keyword (str "executions" (h/->unique-key vsa))))))
@@ -54,11 +54,11 @@
   [venue stock orderbook-atom {:keys [send-fn connected-uids]} :- s/Any]
   (let [orderbook (stock-api/->orderbook venue stock)]
     (swap! orderbook-atom update (h/->unique-key venue stock) conj orderbook)
-    #_(doseq [uid (:any @connected-uids)] (send-fn uid [:order/order-book {:orderbook orderbook}]))))
+    (doseq [uid (:any @connected-uids)] (send-fn uid [:order/order-book {:orderbook orderbook}]))))
 
 (s/defn start-order-book :- s/Any
   [venue stock orderbook-atom ws]
-  (schedule #(start-order-book* venue stock orderbook-atom ws) (-> (id (str "order-book" venue stock)) (every 800 ))))
+  (schedule #(start-order-book* venue stock orderbook-atom ws) (-> (id (str "order-book" venue stock)) (every 1000 ))))
 
 (defn stop-order-book [venue stock]
   (stop (id (str "order-book" venue stock))))

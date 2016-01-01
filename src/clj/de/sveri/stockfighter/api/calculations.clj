@@ -35,4 +35,4 @@
           asks-avg (if (= 0 asks) 0 (/ asks (count completed-asks)))
           spread (- asks-avg bids-avg)]
       ;(println "asks: " (count completed-asks) " - bids: " (count completed-bids))
-      {:spread spread :bids-avg bids-avg :asks-avg asks-avg})))
+      {:spread spread :bids-avg bids-avg :asks-avg asks-avg :last-execution (first executions)})))
