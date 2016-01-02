@@ -43,10 +43,11 @@
                (swap! booking assoc :buy-sell-lock true)
                (let [order (first (second (first new)))
                      k (h/->unique-key {:venue (:venue order) :stock (:symbol order)
-                                        :account (get-in @h/common-state [:game-info :account])})]
+                                        :account (get-in @h/common-state [:game-info :account])})
+                     order-before (second (k new))]
                  (adapt-averages booking (first (k @execution-history)))
                  (three/buy-or-sell-when-enough (:venue order) (:symbol order)
-                                                (get-in @h/common-state [:game-info :account]) order booking)
+                                                (get-in @h/common-state [:game-info :account]) order order-before booking)
                  (swap! booking assoc :buy-sell-lock false)))))
 
 

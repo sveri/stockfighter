@@ -245,10 +245,10 @@
                                                     avg-key new-avg))))))))
 
 
-(defmulti buy-or-sell-when-enough (fn [_ _ _ _ booking] (< 9 (:position @booking))))
+(defmulti buy-or-sell-when-enough (fn [_ _ _ _ _ booking] (< 9 (:position @booking))))
 
 (defmethod buy-or-sell-when-enough true
-  [venue stock account orderbook booking]
+  [venue stock account orderbook _ booking]
   (when-let [bid (first (:bids orderbook))]
     (let [position (:position @booking)
           bid-price (:price bid)
@@ -263,9 +263,10 @@
         (api/new-order new-order)))))
 
 (defmethod buy-or-sell-when-enough false
-  [venue stock account orderbook booking]
+  [venue stock account orderbook orderbook-before booking]
   (when-let [ask (first (:asks orderbook))]
     (let [ask-price (:price ask)
+          ask-price-before (or (:price (first (:asks orderbook-before))) 0)
           qty (if (and ask (< (:qty ask) 60)) (:qty ask) 10)
           buy-order {:account   account :venue venue :stock stock
                      :price     ask-price
@@ -273,8 +274,10 @@
                      :direction "buy"
                      :orderType "immediate-or-cancel"}]
       ;(println "buy" ask-price " - " (:avg-bid @booking) )
-      (when (or (= 0 (:avg-bid @booking)) (< ask-price (:avg-bid @booking)))
-        (api/new-order buy-order)))))
+      ;(when (or (= 0 (:avg-bid @booking)) (< ask-price (:avg-bid @booking)))
+      (println ask-price ask-price-before)
+      (when (< ask-price ask-price-before)
+        (time (api/new-order buy-order))))))
 
 
 ;(s/defn only-buy-and-sell-when-enough

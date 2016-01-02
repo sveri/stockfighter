@@ -21,7 +21,13 @@
          [:quotes/averages m] (swap! state assoc :ticker m)
          [:game/info m] (swap! state assoc :game-info m)
          [:executions/last m] (do (swap! state assoc :executions m)
-                                  (swap! state update :executions-full conj (if (:last-execution m) (:last-execution m) nil))
+                                  (swap! state update :executions-full conj
+                                         (if-let [new-exec (:last-execution m)]
+                                           (let [latest-exe (last (:executions-full @state))]
+                                             (if (not= (get-in new-exec [:order :id]) (get-in latest-exe [:order :id]))
+                                               new-exec
+                                               nil))
+                                           nil))
                                   #_(println (count (:executions-full @state))))
          [:order/order-book orderbook] (do
                                          (swap! state update :orderbook conj (:orderbook orderbook))

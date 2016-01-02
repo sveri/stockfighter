@@ -2336,3 +2336,17 @@ notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
 [0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
 notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
 [32mSuccessfully compiled "resources/public/js/compiled/app.js" in 2.49 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  resources/public/js/compiled/out/goog/deps.js
+notifying browser that file changed:  resources/public/js/compiled/out/cljs_deps.js
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.683 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.481 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\quotes_ticker.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.733 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.568 seconds.[0m
