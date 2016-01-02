@@ -6,7 +6,7 @@
 
 
 ;;;;;; gm ;;;;;;
-(def levels (s/cond-pre (s/eq "chock_a_block") (s/eq "sell_side")))
+(def levels (s/cond-pre (s/eq "chock_a_block") (s/eq "sell_side") (s/eq "dueling_bulldozers")))
 (def levels-response {:account s/Str :instanceId s/Num :instructions s/Any :ok s/Bool :secondsPerTradingDay s/Num
                       :tickers [s/Str] :venues [s/Str] (s/optional-key :balances) s/Any})
 (def game-state {:ok s/Bool :done s/Bool :id s/Num :state s/Str :details {:endOfTheWorldDay s/Num :tradingDay s/Num}})

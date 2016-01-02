@@ -19,10 +19,12 @@
       (cond
         ;(= lvl "chock_a_block") (two/autobuy autobuy-data quote)
         (= lvl "sell_side") (three/be-a-market-maker-now? vsa ws/open-orders
+                                                          (get @ws/order-book (h/->unique-key venue stock)) )
+        (= lvl "dueling_bulldozers") (three/be-a-market-maker-now? vsa ws/open-orders
                                                           (get @ws/order-book (h/->unique-key venue stock)) )))))
 
 (s/defn enable-bots :- s/Any
-  [{:keys [venue stock account] :as vsa} order :- schem/new-batch-order level :- schem/levels]
+  [{:keys [venue stock account] :as vsa} order :- schem/new-batch-order level]
   (println "enabling autobuy for: " venue stock account " and level: " level)
   (swap! autobuy-state assoc (h/->unique-key venue stock account) (assoc order :level level))
   (schedule #(tick-bot vsa)
