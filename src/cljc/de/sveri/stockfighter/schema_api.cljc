@@ -101,3 +101,7 @@
             })
 
 (def local-state {(s/optional-key :instanceId) s/Num (s/optional-key :vsa) vsa})
+
+;
+;; lvl three
+;(def lvl-three-state-atom {:open-bids s/Num :open-asks s/Num})

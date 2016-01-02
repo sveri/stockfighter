@@ -15,15 +15,16 @@
   (letfn [(readfile [a path]
             (try (reset! a (read-string (slurp path)))
                  (catch Exception e (do (println "could not load atoms") (.printStackTrace e)))) )]
-    (readfile ws/execution-history executions-file)
+    ;(readfile ws/execution-history executions-file)
     (readfile h/common-state common-file)
-    (readfile ws/booking booking-file)))
+    ;(readfile ws/booking booking-file)
+    ))
 
 (defn store-atoms []
   ;(spit quotes-file (prn-str @ws/quote-history))
-  (spit executions-file (prn-str @ws/execution-history))
+  ;(spit executions-file (prn-str @ws/execution-history))
   (spit common-file (prn-str (update-in @h/common-state [:game-info] dissoc :instructions)))
-  (spit booking-file (prn-str @ws/booking))
+  ;(spit booking-file (prn-str @ws/booking))
   ;(spit order-file (prn-str @o/order-history))
   )
 

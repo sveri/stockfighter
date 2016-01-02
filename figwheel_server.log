@@ -2640,3 +2640,9 @@ notifying browser that file changed:  out\de\sveri\stockfighter\overview.js
 [0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
 notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
 [32mSuccessfully compiled "resources/public/js/compiled/app.js" in 1.823 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 0.963 seconds.[0m
+[0mCompiling "resources/public/js/compiled/app.js" from ["src/cljs" "src/cljc" "env/dev/cljs"]...
+notifying browser that file changed:  out\de\sveri\stockfighter\schema_api.js
+[32mSuccessfully compiled "resources/public/js/compiled/app.js" in 1.146 seconds.[0m

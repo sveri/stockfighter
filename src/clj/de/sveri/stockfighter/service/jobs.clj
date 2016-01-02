@@ -5,6 +5,8 @@
             [schema.core :as s]
             [de.sveri.stockfighter.schema-api :as schem]
             [de.sveri.stockfighter.service.helper :as h]
+            [clj-time.core :as time-core]
+            [clj-time.coerce :as time-coerce]
             [immutant.scheduling :refer :all]))
 
 (s/defn start-pass-averages* :- s/Any
@@ -62,3 +64,24 @@
 
 (defn stop-order-book [venue stock]
   (stop (id (str "order-book" venue stock))))
+
+
+(s/defn start-clean-open-orders* :- s/Any
+  [venue stock open-orders :- (s/atom schem/orders)]
+  (let [deleted-ids (atom #{})]
+    (doseq [order @open-orders]
+     (let [now (time-coerce/to-long (time-core/now))
+           order-time (.getTime (:ts order))
+           diff (- now order-time)]
+       (when (< 6000 diff)
+         (stock-api/delete-order venue stock (:id order))
+         (swap! deleted-ids conj (:id order))
+         (println "deleted: " (:id order)))))
+    (swap! open-orders (fn [old-orders] (remove #(contains? @deleted-ids (:id %)) old-orders)))))
+
+(s/defn start-clean-open-orders :- s/Any
+  [venue stock open-orders :- (s/atom schem/orders)]
+  (schedule #(start-clean-open-orders* venue stock open-orders) (-> (id "clean-orders") (every 1000 ))))
+
+(defn stop-clean-open-orders []
+  (stop (id "clean-orders")))

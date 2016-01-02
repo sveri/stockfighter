@@ -12,20 +12,20 @@
 
 
 
-(s/defn tick-bot [{:keys [venue stock account] :as vsa} :- schem/vsa orderbook :- schem/orderbooks
-                  booking :- (s/atom schem/booking)]
+(s/defn tick-bot [{:keys [venue stock account] :as vsa} :- schem/vsa]
   (let [key (h/->unique-key venue stock account)
         lvl (:level (key @autobuy-state))]
     (when-let [autobuy-data (key @autobuy-state)]
       (cond
         ;(= lvl "chock_a_block") (two/autobuy autobuy-data quote)
-        (= lvl "sell_side") (three/start-lvl-three vsa orderbook booking)))))
+        (= lvl "sell_side") (three/be-a-market-maker-now? vsa ws/open-orders
+                                                          (get @ws/order-book (h/->unique-key venue stock)) )))))
 
 (s/defn enable-bots :- s/Any
   [{:keys [venue stock account] :as vsa} order :- schem/new-batch-order level :- schem/levels]
   (println "enabling autobuy for: " venue stock account " and level: " level)
   (swap! autobuy-state assoc (h/->unique-key venue stock account) (assoc order :level level))
-  (schedule #(tick-bot vsa (get @ws/order-book (h/->unique-key venue stock)) ws/booking)
+  (schedule #(tick-bot vsa)
             (-> (id (str "bot-" (h/->unique-key vsa))) (every 500))))
 
 (s/defn disable-bots :- s/Any [vsa :- schem/vsa]

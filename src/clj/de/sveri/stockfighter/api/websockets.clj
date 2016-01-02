@@ -20,41 +20,44 @@
 ; nav = cash + (shares * share_price)
 (def booking (atom {:nav 0 :position 0 :cash 0 :avg-bid 0 :avg-ask 0 :ask-count 0 :bid-count 0 :buy-sell-lock false}))
 
+(def order-book (atom {}))
+
 (def active-bots (atom 0))
 
-;(def open-orders (atom []))
-;(add-watch open-orders :orders-validation (fn [_ _ _ new] (s/validate schem/orders new)))
+(def open-orders (atom []))
+(add-watch open-orders :orders-validation (fn [_ _ _ new] (s/validate schem/orders new)))
 
 
-(s/defn adapt-averages [booking-atom last-execution :- (s/maybe schem/execution)]
-  (let [now (time-coerce/to-long (time-core/now))
-        last-exec (time-coerce/to-long (time-coerce/from-date (:filledAt last-execution)))]
-    (when (and (not= 0 (:ask-count @booking-atom)) (not= 0 (:bid-count @booking-atom))
-               (< 10000 (- now last-exec))
-               (< (:avg-ask @booking-atom) (:avg-bid @booking-atom)))
-      (swap! booking-atom (fn [a] (-> (update a :avg-bid + 100)
-                                      (update :avg-ask - 100))))
-      (Thread/sleep 500))))
+;(s/defn adapt-averages [booking-atom last-execution :- (s/maybe schem/execution)]
+;  (let [now (time-coerce/to-long (time-core/now))
+;        last-exec (time-coerce/to-long (time-coerce/from-date (:filledAt last-execution)))]
+;    (when (and (not= 0 (:ask-count @booking-atom)) (not= 0 (:bid-count @booking-atom))
+;               (< 10000 (- now last-exec))
+;               (< (:avg-ask @booking-atom) (:avg-bid @booking-atom)))
+;      (swap! booking-atom (fn [a] (-> (update a :avg-bid + 100)
+;                                      (update :avg-ask - 100))))
+;      (Thread/sleep 500))))
+;
+;
+;(s/defn get-second-last-ask [o-book :- schem/orderbooks]
+;  (let [wo-first (subvec (into [] o-book) 1)]
+;    (first (filter #(not= nil (:asks %)) wo-first))))
 
 
-(s/defn get-second-last-ask [o-book :- schem/orderbooks]
-  (let [wo-first (subvec (into [] o-book) 1)]
-    (first (filter #(not= nil (:asks %)) wo-first))))
-
-(def order-book (atom {}))
-(add-watch order-book :lvl-three
-           (fn [_ _ _ new]
-             (when-not (:buy-sell-lock @booking)
-               (swap! booking assoc :buy-sell-lock true)
-               (let [order (first (second (first new)))
-                     vsa {:venue (:venue order) :stock (:symbol order)
-                          :account (get-in @h/common-state [:game-info :account])}
-                     k (h/->unique-key vsa)
-                     order-before (get-second-last-ask (second (first new)))]
-                 (adapt-averages booking (first (k @execution-history)))
-                 (three/buy-or-sell-when-enough (:venue order) (:symbol order)
-                                                (get-in @h/common-state [:game-info :account]) order order-before booking)
-                 (swap! booking assoc :buy-sell-lock false)))))
+;(add-watch order-book :lvl-three
+;           (fn [_ _ _ new]
+;             (when-not (:buy-sell-lock @booking)
+;               (swap! booking assoc :buy-sell-lock true)
+;               (let [order (first (second (first new)))
+;                     vsa {:venue (:venue order) :stock (:symbol order)
+;                          :account (get-in @h/common-state [:game-info :account])}
+;                     k (h/->unique-key vsa)
+;                     order-before (get-second-last-ask (second (first new)))
+;                     ]
+;                 ;(adapt-averages booking (first (k @execution-history)))
+;                 ;(three/buy-or-sell-when-enough (:venue order) (:symbol order)
+;                 ;                               (get-in @h/common-state [:game-info :account]) order order-before booking)
+;                 (swap! booking assoc :buy-sell-lock false)))))
 
 
 
@@ -98,13 +101,17 @@
                                                     avg-count-key (inc old-count)
                                                     avg-key new-avg))))))))
 
+(s/defn clean-open-order :- s/Any [execution :- schem/execution open-orders :- (s/atom schem/orders)]
+  (when (= 0 (get-in execution [:order :qty]))
+    (swap! open-orders (fn [a] (into [] (remove #(= (:id %) (get-in execution [:order :id])) a))))))
+
 
 (s/defn parse-execution :- s/Any
   [venue stock account execution-response :- s/Str]
   (let [execution (json/read-str execution-response :key-fn keyword :value-fn h/api->date)]
     (if (:ok execution)
       (do (swap! execution-history update (h/->unique-key venue stock account) conj execution)
-          ;(clean-open-order execution open-orders)
+          (clean-open-order execution open-orders)
           (update-booking execution booking)
           )
       (println "something else happened: " execution-response))))
