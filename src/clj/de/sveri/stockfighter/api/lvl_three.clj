@@ -245,21 +245,22 @@
                                                     avg-key new-avg))))))))
 
 
-(defmulti buy-or-sell-when-enough (fn [_ _ _ _ _ booking] (< 9 (:position @booking))))
+(defmulti buy-or-sell-when-enough (fn [_ _ _ _ _ booking] (< 2 (:position @booking))))
 
 (defmethod buy-or-sell-when-enough true
   [venue stock account orderbook _ booking]
   (when-let [bid (first (:bids orderbook))]
     (let [position (:position @booking)
           bid-price (:price bid)
-          qty (min position (:qty bid))
+          qty position
+          ;qty (min position (:qty bid))
           new-order {:account   account :venue venue :stock stock
                      :price     bid-price
                      :qty       qty
                      :direction "sell"
                      :orderType "immediate-or-cancel"}]
-      ;(println "sell" (:avg-ask @booking) " - " bid-price )
-      (when (or (= 0 (:avg-ask @booking)) (< (:avg-ask @booking) bid-price))
+      (when (< (+ 20 (:last-buy @booking)) bid-price)
+      ;(when (or (= 0 (:avg-ask @booking)) (< (:avg-ask @booking) bid-price))
         (api/new-order new-order)))))
 
 (defmethod buy-or-sell-when-enough false
@@ -267,17 +268,16 @@
   (when-let [ask (first (:asks orderbook))]
     (let [ask-price (:price ask)
           ask-price-before (or (:price (first (:asks orderbook-before))) 0)
-          qty (if (and ask (< (:qty ask) 60)) (:qty ask) 10)
+          qty (if (and ask (< (:qty ask) 60)) (:qty ask) 20)
           buy-order {:account   account :venue venue :stock stock
                      :price     ask-price
                      :qty       qty
                      :direction "buy"
                      :orderType "immediate-or-cancel"}]
-      ;(println "buy" ask-price " - " (:avg-bid @booking) )
-      ;(when (or (= 0 (:avg-bid @booking)) (< ask-price (:avg-bid @booking)))
-      (println ask-price ask-price-before)
-      (when (< ask-price ask-price-before)
-        (time (api/new-order buy-order))))))
+      (when (< (* 0.013 ask-price) (- ask-price-before ask-price))
+        (when-let [o-result (api/new-order buy-order)]
+          (when (< 0 (:totalFilled o-result))
+            (swap! booking assoc :last-buy ask-price)))))))
 
 
 ;(s/defn only-buy-and-sell-when-enough

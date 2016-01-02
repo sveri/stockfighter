@@ -74,8 +74,8 @@
                    :game-state         game-state
                    :restart-websockets s/Bool})
 
-(def booking {:nav s/Num :position s/Num :cash s/Num :avg-bid :- s/Num :avg-ask :- s/Num :ask-count s/Num :bid-count s/Num
-              :buy-sell-lock s/Bool})
+(def booking {:nav           s/Num :position s/Num :cash s/Num :avg-bid :- s/Num :avg-ask :- s/Num :ask-count s/Num :bid-count s/Num
+              :buy-sell-lock s/Bool (s/optional-key :last-buy) s/Num})
 
 
 

@@ -68,12 +68,9 @@
                        asks (comm-h/get-bids-or-asks orderbook :asks)
                        buys (get-buys-sells (:executions-full @state) "buy")
                        sells (get-buys-sells (:executions-full @state) "sell")]
-                   ;(println (count asks)  " - " (count buys) " - " (count (:executions-full @state)))
                    (.Line js/Chartist "#chart" (clj->js
-                                                 #_{:labels [[1, 2]]
-                                                    :series [[5, 6]]}
-                                                 ;{:labels (into [] (range 1 (inc (count orderbook))))
-                                                 {:labels (get-time-range orderbook)
+                                                 {:labels (into [] (range 1 (inc (count orderbook))))
+                                                 ;{:labels (get-time-range orderbook)
                                                   :series [bids asks buys sells
                                                            ]})
                           (clj->js {:high (+ 1000 (max bids))
@@ -85,13 +82,7 @@
       {:reagent-render       (fn []
                                [:div#chart {:style {:height 400}}])
 
-       :component-did-mount  (fn [state]
-                               (.Bar js/Chartist "#chart" (clj->js
-                                                            {:labels ["W1"]
-                                                             :series [[1]]})
-                                     (clj->js {:high 10
-                                               :low  -10
-                                               })))
+       :component-did-mount  (fn [] nil)
 
        ;:component-did-update #(get-bids-asks (:executions @state) "buy")
        :component-did-update update

@@ -36,15 +36,21 @@
                                       (update :avg-ask - 100))))
       (Thread/sleep 500))))
 
+
+(s/defn get-second-last-ask [o-book :- schem/orderbooks]
+  (let [wo-first (subvec (into [] o-book) 1)]
+    (first (filter #(not= nil (:asks %)) wo-first))))
+
 (def order-book (atom {}))
 (add-watch order-book :lvl-three
            (fn [_ _ _ new]
              (when-not (:buy-sell-lock @booking)
                (swap! booking assoc :buy-sell-lock true)
                (let [order (first (second (first new)))
-                     k (h/->unique-key {:venue (:venue order) :stock (:symbol order)
-                                        :account (get-in @h/common-state [:game-info :account])})
-                     order-before (second (k new))]
+                     vsa {:venue (:venue order) :stock (:symbol order)
+                          :account (get-in @h/common-state [:game-info :account])}
+                     k (h/->unique-key vsa)
+                     order-before (get-second-last-ask (second (first new)))]
                  (adapt-averages booking (first (k @execution-history)))
                  (three/buy-or-sell-when-enough (:venue order) (:symbol order)
                                                 (get-in @h/common-state [:game-info :account]) order order-before booking)
