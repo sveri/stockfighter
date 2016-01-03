@@ -70,9 +70,7 @@
                        sells (get-buys-sells (:executions-full @state) "sell")]
                    (.Line js/Chartist "#chart" (clj->js
                                                  {:labels (into [] (range 1 (inc (count orderbook))))
-                                                 ;{:labels (get-time-range orderbook)
-                                                  :series [bids asks buys sells
-                                                           ]})
+                                                  :series [bids asks buys sells]})
                           (clj->js {:high (+ 1000 (max bids))
                                     :low  (- (max asks) 1000)
                                     }))
@@ -102,9 +100,9 @@
                       [chart @state]
                       ;[no/new-order-page local-state state]
                       ;[:hr]
-                      [tp/ticker-page local-state state]
+                      ;[tp/ticker-page local-state state]
                       ;[:hr]
-                      [exec/exec-page state]
+                      ;[exec/exec-page state]
                       ])})
   )
 

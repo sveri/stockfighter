@@ -27,7 +27,8 @@
          (get @execution-history)
          (->accumulated-executions)))
   ([executions :- s/Any]
-    (let [completed-bids (filter #(and (< 0 (:filled %))(= "buy" (get-in % [:order :direction]))) executions)
+    {:last-execution (first executions)}
+    #_(let [completed-bids (filter #(and (< 0 (:filled %))(= "buy" (get-in % [:order :direction]))) executions)
           completed-asks (filter #(and (< 0 (:filled %)) (= "sell" (get-in % [:order :direction]))) executions)
           bids (reduce + (map :price completed-bids))
           asks (reduce + (map :price completed-asks))

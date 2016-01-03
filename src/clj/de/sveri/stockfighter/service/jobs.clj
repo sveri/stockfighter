@@ -9,20 +9,20 @@
             [clj-time.coerce :as time-coerce]
             [immutant.scheduling :refer :all]))
 
-(s/defn start-pass-averages* :- s/Any
-  [{:keys [venue stock account]} :- schem/vsa send-fn :- s/Any conn-uids :- s/Any]
-  (doseq [uid (:any @conn-uids)]
-    (send-fn uid [:quotes/averages
-                  {:bid-avg          (or (calc/get-avg-bid venue stock account state/quote-history) 0)
-                   :bid-avg-last-10  (or (calc/get-avg-bid venue stock account state/quote-history 10) 0)
-                   :bid-avg-last-100 (or (calc/get-avg-bid venue stock account state/quote-history 100) 0)}])))
-
-(s/defn start-pass-averages :- s/Any [vsa :- schem/vsa {:keys [send-fn connected-uids]} :- s/Any]
-  (let [key (keyword (str "quot-avg-" (h/->unique-key vsa)))]
-    (schedule #(start-pass-averages* vsa send-fn connected-uids) (-> (id key) (every 5 :seconds)))))
-
-(defn delete-pass-averages [vsa]
-  (stop (id (keyword (str "quot-avg-" (h/->unique-key vsa))))))
+;(s/defn start-pass-averages* :- s/Any
+;  [{:keys [venue stock account]} :- schem/vsa send-fn :- s/Any conn-uids :- s/Any]
+;  (doseq [uid (:any @conn-uids)]
+;    (send-fn uid [:quotes/averages
+;                  {:bid-avg          (or (calc/get-avg-bid venue stock account state/quote-history) 0)
+;                   :bid-avg-last-10  (or (calc/get-avg-bid venue stock account state/quote-history 10) 0)
+;                   :bid-avg-last-100 (or (calc/get-avg-bid venue stock account state/quote-history 100) 0)}])))
+;
+;(s/defn start-pass-averages :- s/Any [vsa :- schem/vsa {:keys [send-fn connected-uids]} :- s/Any]
+;  (let [key (keyword (str "quot-avg-" (h/->unique-key vsa)))]
+;    (schedule #(start-pass-averages* vsa send-fn connected-uids) (-> (id key) (every 5 :seconds)))))
+;
+;(defn delete-pass-averages [vsa]
+;  (stop (id (keyword (str "quot-avg-" (h/->unique-key vsa))))))
 
 
 (s/defn start-pass-executions* :- s/Any

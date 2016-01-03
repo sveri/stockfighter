@@ -61,9 +61,9 @@
         [:td [:span (with-margin {} 20)] (str "Account: " (get-in @local-state [:vsa :account]))]
         [:td
          [:span (with-margin {} 20)]
-         (str "NAV: " (get-in @state [:booking :nav]) " Cash: " (get-in @state [:booking :cash]) " AVG Bid :"
-              (get-in @state [:booking :avg-bid]) " AVG Ask: " (get-in @state [:booking :avg-ask])
-              "Bid Count: " (get-in @state [:booking :bid-count]) " Ask Count: " (get-in @state [:booking :ask-count]))]
+         (str "NAV: " (get-in @state [:booking :nav]) " Cash: " (get-in @state [:booking :cash]) " Pos: " (get-in @state [:booking :position])
+              " AVG Bid :" (get-in @state [:booking :avg-bid]) " AVG Ask: " (get-in @state [:booking :avg-ask])
+              " Bid Count: " (get-in @state [:booking :bid-count]) " Ask Count: " (get-in @state [:booking :ask-count]))]
         ]]]]]
    [:hr]
    [:div.row

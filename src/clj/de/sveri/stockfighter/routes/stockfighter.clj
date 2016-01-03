@@ -48,7 +48,7 @@
 (s/defn start-ticker :- s/Any [{:keys [venue stock] :as vsa} :- schem/vsa websockets :- s/Any]
   ;(ws/connect-quotes vsa)
   (ws/connect-executions vsa)
-  (qh/start-pass-averages vsa websockets)
+  ;(qh/start-pass-averages vsa websockets)
   (qh/start-pass-executions vsa websockets)
   (jobs/start-game-info (get-in @h/common-state [:game-info :instanceId]) vsa websockets)
   (jobs/start-order-book venue stock state/order-book websockets)
@@ -60,7 +60,7 @@
 (s/defn stop-ticker :- s/Any [{:keys [venue stock] :as vsa} :- schem/vsa]
   (h/restart-api-websockets false)
   (ws/close-sockets-by-key vsa)
-  (qh/delete-pass-averages vsa)
+  ;(qh/delete-pass-averages vsa)
   (jobs/delete-game-info vsa)
   (jobs/delete-executions vsa)
   (jobs/stop-order-book venue stock)

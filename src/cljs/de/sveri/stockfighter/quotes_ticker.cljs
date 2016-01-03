@@ -21,8 +21,7 @@
          [:quotes/averages m] (swap! state assoc :ticker m)
          [:game/info m] (swap! state assoc :game-info m)
          [:game/booking m] (swap! state assoc :booking m)
-         [:executions/last m] (do (swap! state assoc :executions m)
-                                  (swap! state update :executions-full conj
+         [:executions/last m] (do (swap! state update :executions-full conj
                                          (if-let [new-exec (:last-execution m)]
                                            (let [latest-exe (last (:executions-full @state))]
                                              (if (not= (get-in new-exec [:order :id]) (get-in latest-exe [:order :id]))

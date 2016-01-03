@@ -55,7 +55,8 @@
 (def execution {:ok    s/Bool :account s/Str :venue s/Str :symbol s/Str :order order :standingId s/Num :incomingId s/Num
                 :price s/Num :filled s/Num :filledAt s/Inst :standingComplete s/Bool :incomingComplete s/Bool})
 
-(def execution-stream {:spread s/Num :bids-avg s/Num :asks-avg s/Num :last-execution (s/maybe execution)})
+(def execution-stream {:last-execution (s/maybe execution)})
+;(def execution-stream {:spread s/Num :bids-avg s/Num :asks-avg s/Num :last-execution (s/maybe execution)})
 
 (def autobuy {s/Keyword new-batch-order})
 
