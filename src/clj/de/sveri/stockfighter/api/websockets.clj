@@ -4,11 +4,7 @@
             [schema.core :as s]
             [de.sveri.stockfighter.api.config :as conf]
             [de.sveri.stockfighter.schema-api :as schem]
-            [de.sveri.stockfighter.service.helper :as h]
-            [de.sveri.stockfighter.api.lvl-three :as three]
-            [com.rpl.specter :as spec]
-            [clj-time.core :as time-core]
-            [clj-time.coerce :as time-coerce]))
+            [de.sveri.stockfighter.service.helper :as h]))
 
 (def quotes-socket (atom {}))
 (def executions-socket (atom {}))
@@ -22,42 +18,8 @@
 
 (def order-book (atom {}))
 
-(def active-bots (atom 0))
-
 (def open-orders (atom []))
 (add-watch open-orders :orders-validation (fn [_ _ _ new] (s/validate schem/orders new)))
-
-
-;(s/defn adapt-averages [booking-atom last-execution :- (s/maybe schem/execution)]
-;  (let [now (time-coerce/to-long (time-core/now))
-;        last-exec (time-coerce/to-long (time-coerce/from-date (:filledAt last-execution)))]
-;    (when (and (not= 0 (:ask-count @booking-atom)) (not= 0 (:bid-count @booking-atom))
-;               (< 10000 (- now last-exec))
-;               (< (:avg-ask @booking-atom) (:avg-bid @booking-atom)))
-;      (swap! booking-atom (fn [a] (-> (update a :avg-bid + 100)
-;                                      (update :avg-ask - 100))))
-;      (Thread/sleep 500))))
-;
-;
-;(s/defn get-second-last-ask [o-book :- schem/orderbooks]
-;  (let [wo-first (subvec (into [] o-book) 1)]
-;    (first (filter #(not= nil (:asks %)) wo-first))))
-
-
-;(add-watch order-book :lvl-three
-;           (fn [_ _ _ new]
-;             (when-not (:buy-sell-lock @booking)
-;               (swap! booking assoc :buy-sell-lock true)
-;               (let [order (first (second (first new)))
-;                     vsa {:venue (:venue order) :stock (:symbol order)
-;                          :account (get-in @h/common-state [:game-info :account])}
-;                     k (h/->unique-key vsa)
-;                     order-before (get-second-last-ask (second (first new)))
-;                     ]
-;                 ;(adapt-averages booking (first (k @execution-history)))
-;                 ;(three/buy-or-sell-when-enough (:venue order) (:symbol order)
-;                 ;                               (get-in @h/common-state [:game-info :account]) order order-before booking)
-;                 (swap! booking assoc :buy-sell-lock false)))))
 
 
 

@@ -75,8 +75,7 @@
            diff (- now order-time)]
        (when (< 6000 diff)
          (stock-api/delete-order venue stock (:id order))
-         (swap! deleted-ids conj (:id order))
-         (println "deleted: " (:id order)))))
+         (swap! deleted-ids conj (:id order)))))
     (swap! open-orders (fn [old-orders] (remove #(contains? @deleted-ids (:id %)) old-orders)))))
 
 (s/defn start-clean-open-orders :- s/Any
