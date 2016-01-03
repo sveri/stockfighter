@@ -84,3 +84,14 @@
 
 (defn stop-clean-open-orders []
   (stop (id "clean-orders")))
+
+
+(s/defn start-pass-booking* :- s/Any
+  [send-fn :- s/Any conn-uids :- s/Any]
+  (doseq [uid (:any @conn-uids)] (send-fn uid [:game/booking @state/booking])))
+
+(s/defn start-pass-booking :- s/Any [{:keys [send-fn connected-uids]} :- s/Any]
+  (schedule #(start-pass-booking* send-fn connected-uids) (-> (id "pass-booking") (every 1 :seconds))))
+
+(defn stop-pass-booking []
+  (stop (id "pass-booking")))

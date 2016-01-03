@@ -53,6 +53,7 @@
   (jobs/start-game-info (get-in @h/common-state [:game-info :instanceId]) vsa websockets)
   (jobs/start-order-book venue stock state/order-book websockets)
   (jobs/start-clean-open-orders venue stock state/open-orders)
+  (jobs/start-pass-booking websockets)
   (h/restart-api-websockets true)
   (response {:ok "ok"}))
 
@@ -64,6 +65,7 @@
   (jobs/delete-executions vsa)
   (jobs/stop-order-book venue stock)
   (jobs/stop-clean-open-orders)
+  (jobs/stop-pass-booking)
   (response {:ok "ok"}))
 
 (s/defn enable-bots :- s/Any

@@ -56,16 +56,14 @@
                               :placeholder "Level Name" :value (:cur-level @state)}]
         [:td [:button.btn.btn-primary (with-margin {:on-click #(start-game local-state state)} 20) "Start Game"]]
         [:td [:button.btn.btn-primary (with-margin {:on-click #(game-info local-state state)} 20) "Game Info"]]
-        [:td [:span (with-margin {} 20)] (str "Finished: " (get-in @state [:game-state :done]))]
         [:td [:span (with-margin {} 20)] (str "Day " (get-in @state [:game-info :details :tradingDay])
                                               " of " (get-in @state [:game-info :details :endOfTheWorldDay]))]
-        [:td [:span (with-margin {} 20)] (str "Venue: " (get-in @local-state [:vsa :venue]))]
-        [:td [:span (with-margin {} 20)] (str "Stock: " (get-in @local-state [:vsa :stock]))]
         [:td [:span (with-margin {} 20)] (str "Account: " (get-in @local-state [:vsa :account]))]
         [:td
          [:span (with-margin {} 20)]
-         (str "Target Price: " (get-in @state [:game-info :flash]))]
-         ;(str "Target Price: " (comm-h/extract-client-target-price (get-in @state [:game-info :flash :info])))]
+         (str "NAV: " (get-in @state [:booking :nav]) " Cash: " (get-in @state [:booking :cash]) " AVG Bid :"
+              (get-in @state [:booking :avg-bid]) " AVG Ask: " (get-in @state [:booking :avg-ask])
+              "Bid Count: " (get-in @state [:booking :bid-count]) " Ask Count: " (get-in @state [:booking :ask-count]))]
         ]]]]]
    [:hr]
    [:div.row
