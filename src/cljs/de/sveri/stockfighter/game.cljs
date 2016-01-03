@@ -27,22 +27,8 @@
         :error-handler (fn [e] (println "some error occured: " e))}))
 
 (defn with-margin [m size] (merge m {:style {:margin-left (str size "px")}}))
+(defn with-width ([width] (with-width {} width)) ([m width] (merge m {:style {:width width}})))
 
-
-
-;(defn new-autobuy [local-state state]
-;  (POST "/stockfighter/bots/start"
-;        {:params        (merge {:level (:cur-level @state)} (->new-order local-state state))
-;         :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
-;         :handler       (fn [e] (println e))
-;         :error-handler (fn [e] (println "some error occured: " e))}))
-;
-;(defn new-autobuy-stop [local-state]
-;  (POST "/stockfighter/bots/stop"
-;        {:params        (:vsa @local-state)
-;         :headers       {:X-CSRF-Token (h/get-value "__anti-forgery-token")}
-;         :handler       (fn [e] (println e))
-;         :error-handler (fn [e] (println "some error occured: " e))}))
 
 
 (defn game-page [local-state state]
@@ -50,7 +36,7 @@
    [:div.row
     [:div.col-md-12
      [:table
-      [:tr {:style {:width 1200}}
+      [:tr {:style {:width 1400}}
        [:td
         [:input.form-control {:on-change   #(swap! state assoc :cur-level (-> % .-target .-value))
                               :placeholder "Level Name" :value (:cur-level @state)}]
@@ -60,10 +46,14 @@
                                               " of " (get-in @state [:game-info :details :endOfTheWorldDay]))]
         [:td [:span (with-margin {} 20)] (str "Account: " (get-in @local-state [:vsa :account]))]
         [:td
-         [:span (with-margin {} 20)]
-         (str "NAV: " (get-in @state [:booking :nav]) " Cash: " (get-in @state [:booking :cash]) " Pos: " (get-in @state [:booking :position])
-              " AVG Bid :" (get-in @state [:booking :avg-bid]) " AVG Ask: " (get-in @state [:booking :avg-ask])
-              " Bid Count: " (get-in @state [:booking :bid-count]) " Ask Count: " (get-in @state [:booking :ask-count]))]
+
+         [:table (with-margin {} 20) [:tr [:td (with-width 50) "NAV"] [:td (with-width 80) "Cash"] [:td (with-width 50) "Pos"]
+                                      [:td (with-width 50) "Bid C"] [:td (with-width 50) "Ask C"]
+                                      [:td (with-width 70) "Avg Bid"] [:td (with-width 70) "Avg Ask"] [:td (with-width 50) "Spread"]]
+          [:tr [:td (get-in @state [:booking :nav])] [:td (get-in @state [:booking :cash])] [:td (get-in @state [:booking :position])]
+           [:td (get-in @state [:booking :bid-count])] [:td (get-in @state [:booking :ask-count])]
+           [:td (get-in @state [:booking :avg-bid])] [:td (get-in @state [:booking :avg-ask])]
+           [:td (- (get-in @state [:booking :avg-bid]) (get-in @state [:booking :avg-ask]))]]]]
         ]]]]]
    [:hr]
    [:div.row
