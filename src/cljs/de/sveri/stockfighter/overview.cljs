@@ -22,35 +22,6 @@
 (add-watch state :validator-watch (fn [_ _ _ new] (s/validate schem/state new)))
 
 
-;var chart = new Chartist.Bar('.ct-chart', {
-;                                           labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10'],
-;                                           series: [
-;                                                    [1, 2, 4, 8, 6, -2, -1, -4, -6, -2]
-;                                                    ]
-;                                           }, {
-;                                               high: 10,
-;                                               low: -10,
-;                                               axisX: {
-;                                                       labelInterpolationFnc: function(value, index) {
-;                                                                                                      return index % 2 === 0 ? value : null;
-;}
-;}
-;});
-
-;(defn init-chart [state]
-;  ;google.load('visualization', '1.1', {packages: ['line']});
-;  ;(.load js/google "visualization" "1.1" (clj->js {:packages ["line"]}))
-;  ;(let [table (js/google.visualization.DataTable.)])
-;  (let [orderbook (:orderbook @state)]
-;    (.Bar js/Chartist "#chart" (clj->js
-;                                {:labels ["W1"]
-;                                 :series [[1]]})
-;         (clj->js {:high 10
-;                   :low  -10
-;                   }))
-;    (println orderbook))
-;  )
-
 (defn get-time-range [orderbook]
   (let [start (.getTime (:ts (last orderbook)))
         end (.getTime (:ts (first orderbook)))]
@@ -87,24 +58,16 @@
        :display-name         "chart"})))
 
 (defn main-page []
-  (reagent/create-class
-    {
-     ;:component-did-mount #(init-chart state)
-     ;:component-did-update #(init-chart state)
-     :display-name "main page"
-     :reagent-render
-                   (fn []
-                     [:div
-                      [game/game-page local-state state]
-                      [:hr]
-                      [chart @state]
-                      ;[no/new-order-page local-state state]
-                      ;[:hr]
-                      ;[tp/ticker-page local-state state]
-                      ;[:hr]
-                      ;[exec/exec-page state]
-                      ])})
-  )
+  [:div
+   [game/game-page local-state state]
+   [:hr]
+   [chart @state]
+   ;[no/new-order-page local-state state]
+   ;[:hr]
+   ;[tp/ticker-page local-state state]
+   ;[:hr]
+   ;[exec/exec-page state]
+   ])
 
 (defn ^:export main []
   (qt/start-router! state)
