@@ -6,9 +6,14 @@
             [goog.dom :as gdom]
             [goog.dom.forms :as gforms]
             [goog.net.XhrIo :as xhr]
+            [cljs.pprint :as pp]
     ;[ajax.core :as ajax]
             )
   (:require-macros [cljs.core.async.macros :refer [go]]))
+
+
+(defn format-number [n]
+  (pp/cl-format nil "~,2f" n))
 
 (defn bool->string [b]
   (if b "true" "false"))

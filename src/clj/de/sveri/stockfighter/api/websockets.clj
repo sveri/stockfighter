@@ -33,24 +33,6 @@
            :on-error #(do (println (format "Some error occured for: %s - %s - %s:" venue stock account))
                           (.printStackTrace %)))))
 
-(s/defn update-booking :- s/Any [{:keys [order]} :- schem/execution book-atom :- s/Any]
-  (let [fills (:fills order)
-        buy-or-sell (:direction order)]
-    (doseq [fill fills]
-      (let [add-min-position? (if (= (:direction order) "buy") + -)
-            add-min-cash? (if (= (:direction order) "buy") - +)]
-        (swap! book-atom (fn [b-old] (let [new-position (add-min-position? (:position b-old) (:qty fill))
-                                           new-cash (add-min-cash? (:cash b-old) (* (:price fill) (:qty fill)))
-                                           avg-key (if (= "buy" buy-or-sell) :avg-ask :avg-bid)
-                                           avg-count-key (if (= "buy" buy-or-sell) :ask-count :bid-count)
-                                           old-avg (avg-key b-old)
-                                           old-count (avg-count-key b-old)
-                                           new-avg (int (/ (+ old-avg (:price fill)) (if (= old-count 0) 1 2)))]
-                                       (assoc b-old :position new-position
-                                                    :cash new-cash
-                                                    avg-count-key (inc old-count)
-                                                    avg-key new-avg))))))))
-
 (s/defn clean-open-order :- s/Any [execution :- schem/execution open-orders :- (s/atom schem/orders)]
   (when (= 0 (get-in execution [:order :qty]))
     (swap! open-orders (fn [a] (into [] (remove #(= (:id %) (get-in execution [:order :id])) a))))))
@@ -62,7 +44,7 @@
     (if (:ok execution)
       (do (swap! state/execution-history update (h/->unique-key venue stock account) conj execution)
           (clean-open-order execution state/open-orders)
-          (update-booking execution state/booking))
+          (state/update-booking (:order execution) state/booking))
       (println "something else happened: " execution-response))))
 
 (s/defn connect-executions :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa]

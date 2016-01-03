@@ -1,5 +1,5 @@
 (ns de.sveri.stockfighter.api.lvl-three
-  (:require [de.sveri.stockfighter.api.calculations :as calc]
+  (:require [de.sveri.stockfighter.api.state :as state]
             [schema.core :as s]
             [de.sveri.stockfighter.schema-api :as schem]
             [de.sveri.stockfighter.api.api :as api]
@@ -23,11 +23,13 @@
         buy-order (->new-order vsa "buy" (- avg-price 20) 7)
         sell-order (->new-order vsa "sell" (+ avg-price 20) 7)]
 
-    (when (< (count @open-orders) 4)
+    (when (< (count @open-orders) 2)
       (let [o-resp (api/new-order buy-order)]
-        (when (< 0 (:qty o-resp)) (swap! open-orders conj o-resp)))
+        (if (< 0 (:qty o-resp)) (swap! open-orders conj o-resp)
+                                (state/update-booking o-resp state/booking)))
       (let [o-resp (api/new-order sell-order)]
-        (when (< 0 (:qty o-resp)) (swap! open-orders conj o-resp))))))
+        (when (< 0 (:qty o-resp)) (swap! open-orders conj o-resp)
+                                  (state/update-booking o-resp state/booking))))))
 
 ;(def default-qty 20)
 ;

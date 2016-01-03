@@ -15,7 +15,8 @@
 (def local-state (alan/local-storage (atom {:vsa {:venue "" :stock "" :account ""}}) :cljs-storage))
 (add-watch local-state :validator-watch (fn [_ _ _ new] (s/validate schem/local-state new)))
 
-(def state (atom {:cur-level       "dueling_bulldozers"
+;(def state (atom {:cur-level       "dueling_bulldozers"
+(def state (atom {:cur-level       "sell_side"
                   :new-order       {:price     (js/parseInt 5000) :qty (js/parseInt 100) :target-qty 100 :direction "buy"
                                     :orderType "limit"}
                   :executions-full []}))

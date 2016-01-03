@@ -47,10 +47,11 @@
         [:td [:span (with-margin {} 20)] (str "Account: " (get-in @local-state [:vsa :account]))]
         [:td
 
-         [:table (with-margin {} 20) [:tr [:td (with-width 50) "NAV"] [:td (with-width 80) "Cash"] [:td (with-width 50) "Pos"]
+         [:table (with-margin {} 20) [:tr [:td (with-width 70) "NAV"] [:td (with-width 90) "Cash"] [:td (with-width 50) "Pos"]
                                       [:td (with-width 50) "Bid C"] [:td (with-width 50) "Ask C"]
                                       [:td (with-width 70) "Avg Bid"] [:td (with-width 70) "Avg Ask"] [:td (with-width 50) "Spread"]]
-          [:tr [:td (get-in @state [:booking :nav])] [:td (get-in @state [:booking :cash])] [:td (get-in @state [:booking :position])]
+          [:tr [:td (h/format-number (/ (get-in @state [:booking :nav]) 100))] [:td (h/format-number (/ (get-in @state [:booking :cash]) 100))]
+           [:td (get-in @state [:booking :position])]
            [:td (get-in @state [:booking :bid-count])] [:td (get-in @state [:booking :ask-count])]
            [:td (get-in @state [:booking :avg-bid])] [:td (get-in @state [:booking :avg-ask])]
            [:td (- (get-in @state [:booking :avg-bid]) (get-in @state [:booking :avg-ask]))]]]]

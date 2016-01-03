@@ -74,7 +74,7 @@
            order-time (.getTime (:ts order))
            diff (- now order-time)]
        (when (< 6000 diff)
-         (stock-api/delete-order venue stock (:id order))
+         (state/update-booking (stock-api/delete-order venue stock (:id order)) state/booking)
          (swap! deleted-ids conj (:id order)))))
     (swap! open-orders (fn [old-orders] (remove #(contains? @deleted-ids (:id %)) old-orders)))))
 

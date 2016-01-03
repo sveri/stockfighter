@@ -28,7 +28,7 @@
   (println "enabling autobuy for: " venue stock account " and level: " level)
   (swap! autobuy-state assoc (h/->unique-key venue stock account) (assoc order :level level))
   (schedule #(tick-bot vsa)
-            (-> (id (str "bot-" (h/->unique-key vsa))) (every 500))))
+            (-> (id (str "bot-" (h/->unique-key vsa))) (every 10500))))
 
 (s/defn disable-bots :- s/Any [vsa :- schem/vsa]
   (let [key (h/->unique-key vsa)
