@@ -1,10 +1,10 @@
 (ns de.sveri.stockfighter.components.locale
-  (:require #_[mount.core :refer [defstate]]
-    [com.stuartsierra.component :as component]))
+  (:require [mount.core :refer [defstate]]
+    #_[com.stuartsierra.component :as component]))
 
-;(defn get-tconfig []
-;  {:tconfig
-(def tconfig
+(defn get-tconfig []
+  {:tconfig
+;(def tconfig
   {:fallback-locale :en
     :dictionary      {:en
                       {:generic
@@ -35,15 +35,15 @@
                        :admin
                        {:title "User Overview"
                         }}}
-    ;}
+    }
    })
 
-(defrecord Locale []
-  component/Lifecycle
-  (start [component](assoc component :tconfig tconfig))
-  (stop [component] (dissoc component :tconfig)))
-
-(defn new-locale []
-  (map->Locale {}))
+;(defrecord Locale []
+;  component/Lifecycle
+;  (start [component](assoc component :tconfig tconfig))
+;  (stop [component] (dissoc component :tconfig)))
+;
+;(defn new-locale []
+;  (map->Locale {}))
 
 ;(defstate locale :start (get-tconfig))

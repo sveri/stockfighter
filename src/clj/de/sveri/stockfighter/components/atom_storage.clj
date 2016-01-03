@@ -2,8 +2,8 @@
   (:require [de.sveri.stockfighter.api.websockets :as ws]
             [de.sveri.stockfighter.api.orders :as o]
             [de.sveri.stockfighter.service.helper :as h]
-    #_[mount.core :refer [defstate]]
-            [com.stuartsierra.component :as component]))
+    [mount.core :refer [defstate]]
+            #_[com.stuartsierra.component :as component]))
 
 (def quotes-file "./env/dev/quotes.edn")
 (def executions-file "./env/dev/executions.edn")
@@ -28,13 +28,13 @@
   ;(spit order-file (prn-str @o/order-history))
   )
 
-(defrecord AtomStorage []
-  component/Lifecycle
-  (start [component] (load-atoms) component)
-  (stop [component] (store-atoms) component))
+;(defrecord AtomStorage []
+;  component/Lifecycle
+;  (start [component] (load-atoms) component)
+;  (stop [component] (store-atoms) component))
+;
+;(defn new-atom-storage []
+;  (map->AtomStorage {}))
 
-(defn new-atom-storage []
-  (map->AtomStorage {}))
-
-;(defstate atom-storage :start (load-atoms)
-;          :stop (store-atoms))
+(defstate atom-storage :start (load-atoms)
+          :stop (store-atoms))

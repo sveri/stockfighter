@@ -76,7 +76,7 @@
   (bots/disable-bots vsa)
   (response {:ok "ok"}))
 
-(defn stockfighter-routes [{:keys [websockets]}]
+(defn stockfighter-routes [websockets]
   (routes (GET "/stockfighter" [] (index-page))
           (GET "/stockfighter/orders/venue/:venue/stock/:stock/account/:account"
                [venue stock account] (orders venue stock account))
@@ -88,6 +88,7 @@
           (POST "/stockfighter/ticker/start" req (start-ticker (:params req) websockets))
           (POST "/stockfighter/ticker/stop" req (stop-ticker (:params req)))))
 
-(defn ws-routes [{:keys [websockets]}]
+(defn ws-routes [websockets]
+  (println websockets)
   (routes (GET "/stockfighter/qoutes/ws" req ((:ajax-get-or-ws-handshake-fn websockets) req))
           (POST "/stockfighter/qoutes/ws" req ((:ajax-post-fn websockets) req))))
