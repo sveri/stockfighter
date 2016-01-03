@@ -17,10 +17,12 @@
 (s/defn ->nav [new-cash :- s/Num position :- s/Num order :- schem/order]
   (+ new-cash (* position (:price order))))
 
+
+(def finished-executions (atom #{}))
+
 (s/defn update-booking :- s/Any [order :- schem/order book-atom :- s/Any]
-  (timb/info " updating " (:id order))
-  (timb/info order)
-  (when (= 0 (:qty order))
+  (when (and (= false (:open order)) (not (contains? @finished-executions (:id order))))
+    (swap! finished-executions conj (:id order))
     (let [fills (:fills order)
          buy-or-sell (:direction order)]
      (doseq [fill fills]
@@ -37,8 +39,7 @@
                                                      :cash new-cash
                                                      :nav (->nav new-cash new-position order)
                                                      avg-count-key (inc old-count)
-                                                     avg-key new-avg))))))))
-  (timb/info @book-atom))
+                                                     avg-key new-avg)))))))))
 
 (def order-book (atom {}))
 

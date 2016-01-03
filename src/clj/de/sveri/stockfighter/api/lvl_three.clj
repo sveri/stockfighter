@@ -26,10 +26,10 @@
     (when (< (count @open-orders) 2)
       (let [o-resp (api/new-order buy-order)]
         (if (< 0 (:qty o-resp)) (swap! open-orders conj o-resp)
-                                (state/update-booking o-resp state/booking)))
+                                #_(state/update-booking o-resp state/booking)))
       (let [o-resp (api/new-order sell-order)]
         (when (< 0 (:qty o-resp)) (swap! open-orders conj o-resp)
-                                  (state/update-booking o-resp state/booking))))))
+                                  #_(state/update-booking o-resp state/booking))))))
 
 ;(def default-qty 20)
 ;
