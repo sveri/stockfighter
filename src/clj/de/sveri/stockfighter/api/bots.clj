@@ -4,8 +4,8 @@
             [schema.core :as s]
             [de.sveri.stockfighter.api.lvl-two :as two]
             [de.sveri.stockfighter.api.lvl-three :as three]
-            [de.sveri.stockfighter.api.websockets :as ws]
-            [immutant.scheduling :refer :all]))
+            [immutant.scheduling :refer :all]
+            [de.sveri.stockfighter.api.state :as state]))
 
 
 (def autobuy-state (atom {}))
@@ -18,10 +18,10 @@
     (when-let [autobuy-data (key @autobuy-state)]
       (cond
         ;(= lvl "chock_a_block") (two/autobuy autobuy-data quote)
-        (= lvl "sell_side") (three/be-a-market-maker-now? vsa ws/open-orders
-                                                          (get @ws/order-book (h/->unique-key venue stock)) )
-        (= lvl "dueling_bulldozers") (three/be-a-market-maker-now? vsa ws/open-orders
-                                                          (get @ws/order-book (h/->unique-key venue stock)) )))))
+        (= lvl "sell_side") (three/be-a-market-maker-now? vsa state/open-orders
+                                                          (get @state/order-book (h/->unique-key venue stock)) )
+        (= lvl "dueling_bulldozers") (three/be-a-market-maker-now? vsa state/open-orders
+                                                          (get @state/order-book (h/->unique-key venue stock)) )))))
 
 (s/defn enable-bots :- s/Any
   [{:keys [venue stock account] :as vsa} order :- schem/new-batch-order level]

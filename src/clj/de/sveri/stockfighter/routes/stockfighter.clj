@@ -13,7 +13,8 @@
             [de.sveri.stockfighter.service.jobs :as jobs]
             [de.sveri.stockfighter.service.helper :as h]
             [de.sveri.stockfighter.api.orders :as o]
-            [de.sveri.stockfighter.api.bots :as bots]))
+            [de.sveri.stockfighter.api.bots :as bots]
+            [de.sveri.stockfighter.api.state :as state]))
 
 (defmulti fail-or-result (fn [result _] (contains? result :error)))
 (defmethod fail-or-result false [r path] (response (get-in r path)))
@@ -50,8 +51,8 @@
   (qh/start-pass-averages vsa websockets)
   (qh/start-pass-executions vsa websockets)
   (jobs/start-game-info (get-in @h/common-state [:game-info :instanceId]) vsa websockets)
-  (jobs/start-order-book venue stock ws/order-book websockets)
-  (jobs/start-clean-open-orders venue stock ws/open-orders)
+  (jobs/start-order-book venue stock state/order-book websockets)
+  (jobs/start-clean-open-orders venue stock state/open-orders)
   (h/restart-api-websockets true)
   (response {:ok "ok"}))
 

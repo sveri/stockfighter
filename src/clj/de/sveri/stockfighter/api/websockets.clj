@@ -4,22 +4,10 @@
             [schema.core :as s]
             [de.sveri.stockfighter.api.config :as conf]
             [de.sveri.stockfighter.schema-api :as schem]
-            [de.sveri.stockfighter.service.helper :as h]))
-
-(def quotes-socket (atom {}))
-(def executions-socket (atom {}))
-
-(def quote-history (atom {}))
-(def execution-history (atom {}))
+            [de.sveri.stockfighter.service.helper :as h]
+            [de.sveri.stockfighter.api.state :as state]))
 
 
-; nav = cash + (shares * share_price)
-(def booking (atom {:nav 0 :position 0 :cash 0 :avg-bid 0 :avg-ask 0 :ask-count 0 :bid-count 0 :buy-sell-lock false}))
-
-(def order-book (atom {}))
-
-(def open-orders (atom []))
-(add-watch open-orders :orders-validation (fn [_ _ _ new] (s/validate schem/orders new)))
 
 
 
@@ -30,13 +18,13 @@
     (if (:ok quote)
       (try
         ;(bots/start-bot vsa (:quote quote) (get @order-book (h/->unique-key venue stock)) booking)
-        (swap! quote-history update (h/->unique-key vsa) conj (:quote quote))
+        (swap! state/quote-history update (h/->unique-key vsa) conj (:quote quote))
         (catch Exception e (do (println (:quote quote)) (.printStackTrace e))))
       (println "something else happened: " quote-response))))
 
 (s/defn connect-quotes :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa]
   (println "starting quote-ticker for " vsa)
-  (swap! quotes-socket assoc (h/->unique-key venue stock account)
+  (swap! state/quotes-socket assoc (h/->unique-key venue stock account)
          (ws/connect
            (str conf/ws-uri account "/venues/" venue "/tickertape/stocks/" stock)
            :on-receive #(parse-quote vsa %)
@@ -72,15 +60,14 @@
   [venue stock account execution-response :- s/Str]
   (let [execution (json/read-str execution-response :key-fn keyword :value-fn h/api->date)]
     (if (:ok execution)
-      (do (swap! execution-history update (h/->unique-key venue stock account) conj execution)
-          (clean-open-order execution open-orders)
-          (update-booking execution booking)
-          )
+      (do (swap! state/execution-history update (h/->unique-key venue stock account) conj execution)
+          (clean-open-order execution state/open-orders)
+          (update-booking execution state/booking))
       (println "something else happened: " execution-response))))
 
 (s/defn connect-executions :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa]
   (println "starting execution-ticker for " vsa)
-  (swap! executions-socket assoc (h/->unique-key venue stock account)
+  (swap! state/executions-socket assoc (h/->unique-key venue stock account)
          (ws/connect
            (str conf/ws-uri account "/venues/" venue "/executions/stocks/" stock)
            :on-receive #(parse-execution venue stock account %)
@@ -89,8 +76,8 @@
            :on-error #(println (format "Some error occured for: %s - %s - %s: \n %s" venue stock account (.printStackTrace %))))))
 
 (s/defn close-sockets-by-key :- s/Any [{:keys [venue stock account]} :- schem/vsa]
-  (when-let [socket (get @quotes-socket (h/->unique-key venue stock account))] (ws/close socket))
-  (when-let [socket (get @executions-socket (h/->unique-key venue stock account))] (ws/close socket)))
+  (when-let [socket (get @state/quotes-socket (h/->unique-key venue stock account))] (ws/close socket))
+  (when-let [socket (get @state/executions-socket (h/->unique-key venue stock account))] (ws/close socket)))
 
 (defn close-socket [s] (ws/close s))
 
@@ -98,8 +85,8 @@
   (for [[_ socket] m] (close-socket socket)))
 
 (defn close-execution-and-quote-socket []
-  (close-all-sockets @quotes-socket)
-  (close-all-sockets @executions-socket))
+  (close-all-sockets @state/quotes-socket)
+  (close-all-sockets @state/executions-socket))
 
 
 
