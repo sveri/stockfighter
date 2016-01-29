@@ -60,7 +60,7 @@
 
 (s/defn start-order-book :- s/Any
   [venue stock orderbook-atom ws]
-  (schedule #(start-order-book* venue stock orderbook-atom ws) (-> (id (str "order-book" venue stock)) (every 2000 ))))
+  (schedule #(start-order-book* venue stock orderbook-atom ws) (-> (id (str "order-book" venue stock)) (every 1000 ))))
 
 (defn stop-order-book [venue stock]
   (stop (id (str "order-book" venue stock))))
@@ -73,7 +73,7 @@
      (let [now (time-coerce/to-long (time-core/now))
            order-time (.getTime (:ts order))
            diff (- now order-time)]
-       (when (< 6000 diff)
+       (when (< 5000 diff)
          (state/update-booking (stock-api/delete-order venue stock (:id order)) state/booking)
          (swap! deleted-ids conj (:id order)))))
     (swap! open-orders (fn [old-orders] (remove #(contains? @deleted-ids (:id %)) old-orders)))))

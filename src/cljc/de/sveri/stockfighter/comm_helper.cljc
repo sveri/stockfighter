@@ -14,3 +14,6 @@
 
 (defn get-bids-or-asks [book bid-or-ask]
   (rseq (reduce (fn [a b] (conj a (:price (first b)))) [] (map bid-or-ask book))))
+
+(defn get-bids-or-asks-volume [book bid-or-ask]
+  (rseq (reduce (fn [a b] (conj a (reduce + (map :qty b)))) [] (map bid-or-ask book))))

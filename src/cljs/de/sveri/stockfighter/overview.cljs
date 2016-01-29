@@ -15,8 +15,8 @@
 (def local-state (alan/local-storage (atom {:vsa {:venue "" :stock "" :account ""}}) :cljs-storage))
 (add-watch local-state :validator-watch (fn [_ _ _ new] (s/validate schem/local-state new)))
 
-;(def state (atom {:cur-level       "dueling_bulldozers"
-(def state (atom {:cur-level       "sell_side"
+(def state (atom {:cur-level       "dueling_bulldozers"
+;(def state (atom {:cur-level       "sell_side"
                   :new-order       {:price     (js/parseInt 5000) :qty (js/parseInt 100) :target-qty 100 :direction "buy"
                                     :orderType "limit"}
                   :executions-full []}))
@@ -38,11 +38,15 @@
                  (let [orderbook (:orderbook @state)
                        bids (comm-h/get-bids-or-asks orderbook :bids)
                        asks (comm-h/get-bids-or-asks orderbook :asks)
-                       buys (get-buys-sells (:executions-full @state) "buy")
-                       sells (get-buys-sells (:executions-full @state) "sell")]
+                       b-vol (comm-h/get-bids-or-asks-volume orderbook :bids)
+                       a-vol (comm-h/get-bids-or-asks-volume orderbook :asks)
+                       ;buys (get-buys-sells (:executions-full @state) "buy")
+                       ;sells (get-buys-sells (:executions-full @state) "sell")
+                       ]
+                   (println (last b-vol) " - " (last a-vol))
                    (.Line js/Chartist "#chart" (clj->js
                                                  {:labels (into [] (range 1 (inc (count orderbook))))
-                                                  :series [bids asks buys sells]})
+                                                  :series [bids asks b-vol a-vol]})
                           (clj->js {:high (+ 1000 (max bids))
                                     :low  (- (max asks) 1000)
                                     }))

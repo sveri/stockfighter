@@ -4,6 +4,7 @@
             [schema.core :as s]
             [de.sveri.stockfighter.api.lvl-two :as two]
             [de.sveri.stockfighter.api.lvl-three :as three]
+            [de.sveri.stockfighter.api.lvl-four :as four]
             [immutant.scheduling :refer :all]
             [de.sveri.stockfighter.api.state :as state]))
 
@@ -19,16 +20,17 @@
       (cond
         ;(= lvl "chock_a_block") (two/autobuy autobuy-data quote)
         (= lvl "sell_side") (three/be-a-market-maker-now? vsa state/open-orders
-                                                          (get @state/order-book (h/->unique-key venue stock)) )
-        (= lvl "dueling_bulldozers") (three/be-a-market-maker-now? vsa state/open-orders
-                                                          (get @state/order-book (h/->unique-key venue stock)) )))))
+                                                          (get @state/order-book (h/->unique-key venue stock)))
+        (= lvl "dueling_bulldozers") (four/be-a-market-maker-now? vsa state/open-orders
+                                                                  (get @state/order-book (h/->unique-key venue stock))
+                                                                  state/booking)))))
 
 (s/defn enable-bots :- s/Any
   [{:keys [venue stock account] :as vsa} order :- schem/new-batch-order level]
   (println "enabling autobuy for: " venue stock account " and level: " level)
   (swap! autobuy-state assoc (h/->unique-key venue stock account) (assoc order :level level))
   (schedule #(tick-bot vsa)
-            (-> (id (str "bot-" (h/->unique-key vsa))) (every 10500))))
+            (-> (id (str "bot-" (h/->unique-key vsa))) (every 1500))))
 
 (s/defn disable-bots :- s/Any [vsa :- schem/vsa]
   (let [key (h/->unique-key vsa)

@@ -78,52 +78,53 @@
 ;
 ;
 ;
-;
-;(def test-book
-;  '({:ok     true,
-;     :venue  "MOEX",
-;     :symbol "UUKG",
-;     :ts     #inst "2015-12-30T15:00:34.598-00:00",
-;     :bids
-;             [{:price 9098, :qty 203, :isBuy true}
-;              {:price 8943, :qty 459, :isBuy true}
-;              {:price 8899, :qty 459, :isBuy true}
-;              {:price 8855, :qty 459, :isBuy true}
-;              {:price 8736, :qty 148, :isBuy true}],
-;     :asks
-;             [{:price 9143, :qty 40, :isBuy false}
-;              {:price 9188, :qty 40, :isBuy false}
-;              {:price 9233, :qty 40, :isBuy false}]}
-;     {:ok     true,
-;      :venue  "MOEX",
-;      :symbol "UUKG",
-;      :ts     #inst "2015-12-30T15:00:24.616-00:00",
-;      :bids
-;              [{:price 8793, :qty 203, :isBuy true}
-;               {:price 8663, :qty 438, :isBuy true}
-;               {:price 8620, :qty 438, :isBuy true}
-;               {:price 8577, :qty 438, :isBuy true}],
-;      :asks
-;              [{:price 9175, :qty 47, :isBuy false}
-;               {:price 9220, :qty 47, :isBuy false}
-;               {:price 9265, :qty 15, :isBuy false}]}
-;     {:ok     true,
-;      :venue  "MOEX",
-;      :symbol "UUKG",
-;      :ts     #inst "2015-12-30T15:00:24.616-00:00",
-;      :bids
-;              [{:price 8793, :qty 203, :isBuy true}
-;               {:price 8663, :qty 438, :isBuy true}
-;               {:price 8620, :qty 438, :isBuy true}
-;               {:price 8577, :qty 438, :isBuy true}],
-;      :asks
-;              [{:price 9175, :qty 47, :isBuy false}
-;               {:price 9220, :qty 47, :isBuy false}
-;               {:price 9265, :qty 15, :isBuy false}]}))
-;
+
+(def test-book
+  '({:ok     true,
+     :venue  "MOEX",
+     :symbol "UUKG",
+     :ts     #inst "2015-12-30T15:00:34.598-00:00",
+     :bids
+             [{:price 9098, :qty 203, :isBuy true}
+              {:price 8943, :qty 459, :isBuy true}
+              {:price 8899, :qty 459, :isBuy true}
+              {:price 8855, :qty 459, :isBuy true}
+              {:price 8736, :qty 148, :isBuy true}],
+     :asks
+             [{:price 9143, :qty 40, :isBuy false}
+              {:price 9188, :qty 40, :isBuy false}
+              {:price 9233, :qty 40, :isBuy false}]}
+     {:ok     true,
+      :venue  "MOEX",
+      :symbol "UUKG",
+      :ts     #inst "2015-12-30T15:00:24.616-00:00",
+      :bids
+              [{:price 8793, :qty 203, :isBuy true}
+               {:price 8663, :qty 438, :isBuy true}
+               {:price 8620, :qty 438, :isBuy true}
+               {:price 8577, :qty 438, :isBuy true}],
+      :asks
+              [{:price 9175, :qty 47, :isBuy false}
+               {:price 9220, :qty 47, :isBuy false}
+               {:price 9265, :qty 15, :isBuy false}]}
+     {:ok     true,
+      :venue  "MOEX",
+      :symbol "UUKG",
+      :ts     #inst "2015-12-30T15:00:24.616-00:00",
+      :bids
+              [{:price 8793, :qty 203, :isBuy true}
+               {:price 8663, :qty 438, :isBuy true}
+               {:price 8620, :qty 438, :isBuy true}
+               {:price 8577, :qty 438, :isBuy true}],
+      :asks
+              [{:price 9175, :qty 47, :isBuy false}
+               {:price 9220, :qty 47, :isBuy false}
+               {:price 9265, :qty 15, :isBuy false}]}))
+
 ;((fn avg-ask [book]
 ;   ;(map #(get-in % [:asks :price]) book)
 ;   (let [prices (spec/select [spec/ALL :asks spec/FIRST :price] book)]
 ;     (int (/ (reduce + prices) (count prices))))
 ;   )
 ;  test-book)
+
