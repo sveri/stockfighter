@@ -14,11 +14,7 @@
 
 (def bot-enabled (atom false))
 
-(def vsa (atom {}))
-
-;(ws/connect-executions conf/vsa)
-
-;(jobs/start-order-book conf/pvp-venue conf/pvp-stock state/order-book nil)
+(def lvl "sell_side")
 
 
 
@@ -46,8 +42,15 @@
 
 
 (defn start-level []
-  (let [game-info (api/start-game "sell_side")]
+  (let [game-info (api/start-game lvl)]
     (if (:ok game-info)
-      (do (swap! h/common-state assoc :game-info game-info)
-          (reset! vsa {:account (:account game-info) :venue (first (:venues game-info)) :stock (first (:tickers game-info))}))
+      (let [vsa (h/->vsa)]
+        (swap! h/common-state assoc :game-info game-info)
+          (ws/connect-executions vsa)
+          (jobs/start-order-book (:venue vsa) (:stock vsa) state/order-book nil))
       (println "error starting game: " game-info))))
+
+(defn stop-level []
+  (let [resp (api/stop-game (h/->instanceid))]
+    (println "stopped level")
+    (clojure.pprint/pprint resp)))

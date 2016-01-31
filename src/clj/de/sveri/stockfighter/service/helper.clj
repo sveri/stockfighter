@@ -4,6 +4,12 @@
 
 (def common-state (atom {:restart-websockets false}))
 
+(defn ->vsa []
+  {:account (:account (:game-info @common-state)) :venue (first (:venues (:game-info @common-state))) :stock (first (:tickers (:game-info @common-state)))})
+
+(defn ->instanceid []
+  (get-in @common-state [:game-info :instanceId]))
+
 (defn ->unique-key
   ([{:keys [venue stock account]}] (->unique-key venue stock account))
   ([venue stock & [account]] (keyword (format "%s-%s-%s" venue stock account))))

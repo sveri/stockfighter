@@ -64,3 +64,6 @@
 
 (defn get-level-info [instance]
   (parse-response (client/get (str gm-uri "instances/" instance) (with-key-and-defaults))))
+
+(defn stop-game [instance]
+  (parse-response (client/get (str gm-uri "instances/" instance "/stop") (with-key-and-defaults))))
