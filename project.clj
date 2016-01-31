@@ -6,7 +6,7 @@
 
   :source-paths ["src/clj" "src/cljs" "src/cljc"]
 
-  :dependencies [[org.clojure/clojure "1.7.0"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.7.189"]
 
                  ;[org.clojure/core.cache "0.6.4"]

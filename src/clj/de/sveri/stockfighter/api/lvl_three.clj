@@ -4,7 +4,8 @@
             [de.sveri.stockfighter.schema-api :as schem]
             [de.sveri.stockfighter.api.api :as api]
             [immutant.scheduling :refer :all]
-            [com.rpl.specter :as spec]))
+            [com.rpl.specter :as spec]
+            [de.sveri.stockfighter.api.config :as conf]))
 
 (s/defn ->new-order [{:keys [venue stock account] :as vsa} :- schem/vsa buy-or-sell :- schem/direction price :- s/Num qty :- s/Num]
   {:account account :venue venue :stock stock :price price :qty qty :direction buy-or-sell :orderType "limit"})

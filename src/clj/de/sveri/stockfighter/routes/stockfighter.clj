@@ -14,7 +14,8 @@
             [de.sveri.stockfighter.service.helper :as h]
             [de.sveri.stockfighter.api.orders :as o]
             [de.sveri.stockfighter.api.bots :as bots]
-            [de.sveri.stockfighter.api.state :as state]))
+            [de.sveri.stockfighter.api.state :as state]
+            [de.sveri.stockfighter.api.config :as conf]))
 
 (defmulti fail-or-result (fn [result _] (contains? result :error)))
 (defmethod fail-or-result false [r path] (response (get-in r path)))

@@ -59,7 +59,7 @@
        :component-did-mount  (fn [] nil)
 
        ;:component-did-update #(get-bids-asks (:executions @state) "buy")
-       :component-did-update update
+       ;:component-did-update update
        :display-name         "chart"})))
 
 (defn main-page []

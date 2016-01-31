@@ -6,7 +6,8 @@
             [de.sveri.stockfighter.api.lvl-three :as three]
             [de.sveri.stockfighter.api.lvl-four :as four]
             [immutant.scheduling :refer :all]
-            [de.sveri.stockfighter.api.state :as state]))
+            [de.sveri.stockfighter.api.state :as state]
+            [de.sveri.stockfighter.api.config :as conf]))
 
 
 (def autobuy-state (atom {}))
