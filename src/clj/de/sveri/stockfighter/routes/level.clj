@@ -19,17 +19,9 @@
   (response (api/get-level-info instance)))
 
 
-
-(s/defn start-lvl-three :- s/Any [vsa :- schem/vsa]
-
-  (response {:ok "ok"}))
-
-(s/defn stop-lvl-three :- s/Any [vsa :- schem/vsa]
-  (response {:ok "ok"}))
-
 (defroutes level-routes
            (POST "/level/start" req (start (:params req)))
            (GET "/level/state/instance/:instance" [instance] (get-level-state instance))
 
-           (POST "/level/three/start" req (start-lvl-three (:params req)))
-           (POST "/level/three/stop" req (stop-lvl-three (:params req))))
+           #_(POST "/level/three/start" req (start-lvl-three (:params req)))
+           #_(POST "/level/three/stop" req (stop-lvl-three (:params req))))
