@@ -9,14 +9,14 @@
 
 
 (s/defn start :- s/Any [params :- {:name s/Str}]
-  (let [game-info (api/start-game (:name params))]
+  (let [game-info @(api/start-game (:name params))]
     (if (:ok game-info)
       (do (swap! h/common-state assoc :game-info game-info)
           (response game-info))
       (status (response game-info) 500))))
 
 (defn get-level-state [instance]
-  (response (api/get-level-info instance)))
+  (response @(api/get-level-info instance)))
 
 
 (defroutes level-routes

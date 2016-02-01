@@ -7,4 +7,4 @@
 
 (s/defn autobuy :- s/Any [autobuy-data :- schem/new-batch-order quote :- s/Any]
   (when (and (:bid quote) (<= (:bid quote) (:price autobuy-data)))
-    (api/new-order (dissoc autobuy-data :level :target-qty))))
+    @(api/new-order (dissoc autobuy-data :level :target-qty))))

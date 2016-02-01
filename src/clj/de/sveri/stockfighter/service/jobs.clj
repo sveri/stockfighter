@@ -39,7 +39,7 @@
 
 (s/defn start-order-book* :- s/Any
   [venue stock orderbook-atom {:keys [send-fn connected-uids]} :- s/Any]
-  (let [orderbook (stock-api/->orderbook venue stock)]
+  (let [orderbook @(stock-api/->orderbook venue stock)]
     (swap! orderbook-atom update (h/->unique-key venue stock) conj orderbook)
     #_(doseq [uid (:any @connected-uids)] (send-fn uid [:order/order-book {:orderbook orderbook}]))))
 
@@ -83,12 +83,12 @@
     (println "correcting buy")
     (let [avg-bid (:avg-bid @state/booking)
           order (h/->new-order vsa "buy" (- avg-bid 10) 50)]
-      (api/new-order order)))
+      @(api/new-order order)))
   (when (< 80 (:position @state/booking))
     (println "correcting sell")
     (let [avg-ask (:avg-ask @state/booking)
           order (h/->new-order vsa "sell" (+ avg-ask 10) 50)]
-      (api/new-order order))))
+      @(api/new-order order))))
 
 (s/defn start-correcting-orders :- s/Any [vsa]
   (schedule #(start-correcting-orders* vsa) (-> (id "correcting-orders") (every 10000))))

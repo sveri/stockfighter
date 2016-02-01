@@ -32,9 +32,9 @@
     (when (and (< (get-depth :asks orderbooks) 10000) (< (get-depth :bids orderbooks) 10000)
                (< (count @open-orders) 3))
       (when (< (:position @booking) 300)
-        (let [o-resp (api/new-order buy-order)]
+        (let [o-resp @(api/new-order buy-order)]
           (if (< 0 (:qty o-resp)) (swap! open-orders conj o-resp))))
       (when (< -300 (:position @booking))
         (println "selling")
-        (let [o-resp (api/new-order sell-order)]
+        (let [o-resp @(api/new-order sell-order)]
           (when (< 0 (:qty o-resp)) (swap! open-orders conj o-resp)))))))

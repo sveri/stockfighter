@@ -40,18 +40,19 @@
             sell-price (- (:price (first last-ask-and-bid)) 10)
             min-qty (min (:qty (first last-ask-and-bid)) (:qty (second last-ask-and-bid)))
             qty (int (/ min-qty 2))
-            qty-quantifier (int (* 0.2 qty))
-            sell-qty (- qty qty-quantifier)
+            ;qty-quantified (- qty (int (* 0.2 qty)))
+            ;sell-qty (- qty qty-quantifier)
 
             buy-order (h/->new-order vsa "buy" buy-price qty)
-            sell-order (h/->new-order vsa "sell" sell-price sell-qty)]
+            sell-order (h/->new-order vsa "sell" sell-price qty)]
         (when (< 60 spread)
           (println "spread: " spread " - buy: " buy-price
                    " - sell: " sell-price)
-          (let [o-resp (api/new-order buy-order)]
-            (if (< 0 (get o-resp :qty 0)) (swap! open-orders conj o-resp)))
-          (let [o-resp (api/new-order sell-order)]
-            (when (< 0 (get o-resp :qty 0)) (swap! open-orders conj o-resp))))))))
+          (let [buy-resp (api/new-order buy-order)
+                sell-resp (api/new-order sell-order)]
+            (when (< 0 (get @buy-resp :qty 0)) (swap! open-orders conj @buy-resp))
+            (when (< 0 (get @sell-resp :qty 0)) (swap! open-orders conj @sell-resp)))
+          )))))
 
 (s/defn be-a-market-maker-now? [vsa :- schem/vsa
                                 open-orders :- (s/atom schem/orders) orderbooks :- schem/orderbooks]
@@ -94,7 +95,7 @@
 ;                 ;:orderType "limit"}]
 ;                 :orderType "immediate-or-cancel"}]
 ;
-;      (let [o-resp (api/new-order order)]
+;      (let [o-resp @(api/new-order order)]
 ;        ;(println "foo: " (:direction order) " - " given-price)
 ;        ;(println o-resp)
 ;        o-resp))))
@@ -109,7 +110,7 @@
 ;               :orderType "limit"}]
 ;    ;:orderType "immediate-or-cancel"}]
 ;
-;    (let [o-resp (api/new-order order)]
+;    (let [o-resp @(api/new-order order)]
 ;      ;(println "foo: " (:direction order) " - " given-price)
 ;      ;(println o-resp)
 ;      o-resp)))
@@ -164,7 +165,7 @@
 ;
 ;(defn delete-and-reorder [venue stock account new-qty a]
 ;  (let [order-result (:order-result @a)
-;        _ (api/delete-order venue stock (:id order-result))
+;        _ @(api/delete-order venue stock (:id order-result))
 ;        new-sell-order {:account   account :venue venue :stock stock
 ;                        :price     (- (:price order-result) 20)
 ;                        :qty       new-qty
@@ -175,13 +176,13 @@
 ;(defmulti sell-counter-order (fn [_ _ a] (:order-result @a)))
 ;
 ;(defmethod sell-counter-order nil [_ _ a]
-;  (let [order-result (api/new-order (:order @a))]
+;  (let [order-result @(api/new-order (:order @a))]
 ;    (if (= 0 (:qty order-result))
 ;      (reset! a {:tries 0 :order nil :order-result nil})
 ;      (swap! a assoc :order-result order-result))))
 ;
 ;(defmethod sell-counter-order :default [venue stock a]
-;  (let [order-status (api/->order-status venue stock (get-in @a [:order-result :id]))]
+;  (let [order-status @(api/->order-status venue stock (get-in @a [:order-result :id]))]
 ;    (if (= 0 (:qty order-status))
 ;      (reset! a {:tries 0 :order nil :order-result nil})
 ;      (if (= 20 (:tries @a))
@@ -207,7 +208,7 @@
 ;                      :direction "sell"
 ;                      :orderType "limit"}]
 ;      (when ask
-;        (let [o-result (api/new-order buy-order)]
+;        (let [o-result @(api/new-order buy-order)]
 ;          (when (< 0 (:totalFilled o-result))
 ;            (swap! counter-order assoc :order sell-order)))))))
 ;
@@ -224,11 +225,11 @@
 ;
 ;(s/defn sell-order! [{:keys [venue stock account] :as sellorder} :- schem/new-order open-orders :- (s/atom schem/orders)
 ;                     target-qty :- s/Num]
-;  (let [sell-result (api/new-order (assoc sellorder :qty target-qty))]
+;  (let [sell-result @(api/new-order (assoc sellorder :qty target-qty))]
 ;    (when (< 0 (:qty sell-result))
 ;      (swap! open-orders conj sell-result)
 ;      (loop []
-;        (let [status (api/->order-status venue stock (:id sell-result))]
+;        (let [status @(api/->order-status venue stock (:id sell-result))]
 ;          (when (< 0 (:qty status))
 ;            (Thread/sleep 500)
 ;            (recur))
@@ -237,10 +238,10 @@
 ;              (do (Thread/sleep 500) (recur)))))
 ;      #_(do #_(println "waiting id: " (:id sell-result))
 ;          (Thread/sleep 1000)
-;          (let [status (api/->order-status venue stock (:id sell-result))]
+;          (let [status @(api/->order-status venue stock (:id sell-result))]
 ;            (if (< 0 (:qty status))
 ;              #_(do #_(println "delete and reorder: " (:id status))
-;                  (let [delete-order-response (api/delete-order venue stock (:id status))]
+;                  (let [delete-order-response @(api/delete-order venue stock (:id status))]
 ;                    #_(println delete-order-response " -= " (< (:totalFilled delete-order-response) (:qty status)) " - " (:qty delete-order-response) " - " (:qty status))
 ;                    (if (< (:totalFilled delete-order-response) (:qty status))
 ;                      (sell-order! {:account   account :venue venue :stock stock
@@ -272,7 +273,7 @@
 ;                      :direction "sell"
 ;                      :orderType "limit"}]
 ;      (when ask
-;        (let [o-result (api/new-order buy-order)]
+;        (let [o-result @(api/new-order buy-order)]
 ;          (when (< 0 (:totalFilled o-result))
 ;            (sell-order! sell-order open-orders (:totalFilled o-result))))))))
 ;
@@ -312,7 +313,7 @@
 ;                     :orderType "immediate-or-cancel"}]
 ;      (when (< (+ 20 (:last-buy @booking)) bid-price)
 ;      ;(when (or (= 0 (:avg-ask @booking)) (< (:avg-ask @booking) bid-price))
-;        (api/new-order new-order)))))
+;        @(api/new-order new-order)))))
 ;
 ;(defmethod buy-or-sell-when-enough false
 ;  [venue stock account orderbook orderbook-before booking]
@@ -326,6 +327,6 @@
 ;                     :direction "buy"
 ;                     :orderType "immediate-or-cancel"}]
 ;      (when (< (* 0.013 ask-price) (- ask-price-before ask-price))
-;        (when-let [o-result (api/new-order buy-order)]
+;        (when-let [o-result @(api/new-order buy-order)]
 ;          (when (< 0 (:totalFilled o-result))
 ;            (swap! booking assoc :last-buy ask-price)))))))

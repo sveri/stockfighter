@@ -24,8 +24,8 @@
 (def tick-allowed (atom true))
 
 (s/defn tick-bot [{:keys [venue stock] :as vsa} :- schem/vsa]
-  ;(when (and @tick-allowed @bot-enabled)
-  (when @bot-enabled
+  (when (and @tick-allowed @bot-enabled)
+  ;(when @bot-enabled
     (reset! tick-allowed false)
     (three/be-a-market-maker-now? vsa state/open-orders
                                   (get @state/order-book (h/->unique-key venue stock)))
@@ -49,7 +49,7 @@
 
 
 (defn start-level []
-  (let [game-info (api/start-game lvl)]
+  (let [game-info @(api/start-game lvl)]
     (if (:ok game-info)
       (do
         (swap! h/common-state assoc :game-info game-info)
@@ -61,7 +61,7 @@
       (println "error starting game: " game-info))))
 
 (defn stop-level []
-  (let [resp (api/stop-game (h/->instanceid))]
+  (let [resp @(api/stop-game (h/->instanceid))]
 
     (println "stopped level")
     (clojure.pprint/pprint resp)))

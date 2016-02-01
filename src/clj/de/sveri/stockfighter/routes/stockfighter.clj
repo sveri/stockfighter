@@ -21,15 +21,15 @@
 (defmethod fail-or-result false [r path] (response (get-in r path)))
 (defmethod fail-or-result true [r _] (status (response {:error (:error r)}) (:status r)))
 
-(def cached-orders (mem/ttl #(api/->orders %1 %2 %3) :ttl/threshold 1200000))
+;(def cached-orders (mem/ttl #(api/->orders %1 %2 %3) :ttl/threshold 1200000))
 
 (defn index-page [] (layout/render "stockfighter.html"))
 
-(s/defn orders :- (s/cond-pre {:status s/Num :headers s/Any :body schem/orders}
-                              {:status s/Num :headers s/Any :body s/Any})
-  [venue stock account]
-  (let [orders (cached-orders venue stock account)]
-    (fail-or-result orders [:orders])))
+;(s/defn orders :- (s/cond-pre {:status s/Num :headers s/Any :body schem/orders}
+;                              {:status s/Num :headers s/Any :body s/Any})
+;  [venue stock account]
+;  (let [orders (cached-orders venue stock account)]
+;    (fail-or-result orders [:orders])))
 
 (s/defn new-order :- s/Any
   [order :- schem/new-batch-order]
@@ -81,7 +81,7 @@
 
 (defn stockfighter-routes [{:keys [websockets]}]
   (routes (GET "/stockfighter" [] (index-page))
-          (GET "/stockfighter/orders/venue/:venue/stock/:stock/account/:account"
+          #_(GET "/stockfighter/orders/venue/:venue/stock/:stock/account/:account"
                [venue stock account] (orders venue stock account))
           (POST "/stockfighter/orders" req (new-order (:params req)))
           (POST "/stockfighter/bots/start" req (enable-bots (:params req)))
