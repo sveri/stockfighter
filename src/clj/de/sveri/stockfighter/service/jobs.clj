@@ -45,47 +45,53 @@
 
 (s/defn start-order-book :- s/Any
   [venue stock orderbook-atom ws]
-  (schedule #(start-order-book* venue stock orderbook-atom ws) (-> (id (str "order-book" venue stock)) (every 1000 ))))
+  (schedule #(start-order-book* venue stock orderbook-atom ws) (-> (id (str "order-book" venue stock)) (every 1000))))
 
 (defn stop-order-book [venue stock]
   (stop (id (str "order-book" venue stock))))
 
 
+(def can-clean (atom true))
 (s/defn start-clean-open-orders* :- s/Any
   [venue stock open-orders :- (s/atom schem/orders)]
-  (let [deleted-ids (atom #{})]
-    (doseq [order @open-orders]
-      (let [now (time-coerce/to-long (time-core/now))
-            order-time (.getTime (:ts order))
-            diff (- now order-time)]
-        (when (< 3000 diff)
-          (state/update-booking (stock-api/delete-order venue stock (:id order)) state/booking)
-          (swap! deleted-ids conj (:id order)))))
-    (swap! open-orders (fn [old-orders] (remove #(contains? @deleted-ids (:id %)) old-orders)))))
+  (when @can-clean
+    (reset! can-clean false)
+    (let [deleted-ids (atom #{})]
+      (doseq [order @open-orders]
+        (let [now (time-coerce/to-long (time-core/now))
+              order-time (.getTime (:ts order))
+              diff (- now order-time)]
+          ;(println diff " - " now " - " order-time)
+          (when (< -55000 diff)
+            (println "cleaning open order" order)
+            (state/update-booking (stock-api/delete-order venue stock (:id order)) state/booking)
+            (swap! deleted-ids conj (:id order)))))
+      (swap! open-orders (fn [old-orders] (remove #(contains? @deleted-ids (:id %)) old-orders))))
+    (reset! can-clean true)))
 
 (s/defn start-clean-open-orders :- s/Any
   [venue stock open-orders :- (s/atom schem/orders)]
-  (schedule #(start-clean-open-orders* venue stock open-orders) (-> (id "clean-orders") (every 100 ))))
+  (schedule #(start-clean-open-orders* venue stock open-orders) (-> (id "clean-orders") (every 2000))))
 
 (defn stop-clean-open-orders []
   (stop (id "clean-orders")))
 
 
 (s/defn start-correcting-orders* :- s/Any
-  [vsa ]
-  (when (< (:position @state/booking) -50)
+  [vsa]
+  (when (< (:position @state/booking) -80)
     (println "correcting buy")
     (let [avg-bid (:avg-bid @state/booking)
-          order (h/->new-order vsa "buy" (- avg-bid 10) 20)]
+          order (h/->new-order vsa "buy" (- avg-bid 10) 50)]
       (api/new-order order)))
-  (when (< 50 (:position @state/booking))
+  (when (< 80 (:position @state/booking))
     (println "correcting sell")
     (let [avg-ask (:avg-ask @state/booking)
-          order (h/->new-order vsa "sell" (+ avg-ask 10) 20)]
+          order (h/->new-order vsa "sell" (+ avg-ask 10) 50)]
       (api/new-order order))))
 
 (s/defn start-correcting-orders :- s/Any [vsa]
-  (schedule #(start-correcting-orders* vsa) (-> (id "correcting-orders") (every 3000 ))))
+  (schedule #(start-correcting-orders* vsa) (-> (id "correcting-orders") (every 10000))))
 
 (defn stop-correcting-orders []
   (stop (id "correcting-orders")))

@@ -1,7 +1,8 @@
 (ns de.sveri.stockfighter.api.state
   (:require [de.sveri.stockfighter.schema-api :as schem]
             [schema.core :as s]
-            [taoensso.timbre :as timb]))
+            [taoensso.timbre :as timb]
+            [de.sveri.stockfighter.service.helper :as h]))
 
 (def quotes-socket (atom {}))
 (def executions-socket (atom {}))
@@ -42,6 +43,7 @@
                                                      avg-key new-avg)))))))))
 
 (def order-book (atom {}))
+(defn ->orderbook [vsa] (get @order-book (h/->unique-key (:venue (h/->vsa)) (:stock (h/->vsa)))))
 
 
 (def open-orders (atom []))

@@ -17,17 +17,41 @@
       (int (/ (reduce + asks) (count asks)))
       0)))
 
-(s/defn sell-and-buy [vsa :- schem/vsa
-                    open-orders :- (s/atom schem/orders) orderbooks :- schem/orderbooks]
-  (let [avg-price (->avg-price orderbooks :asks)
-        buy-order (h/->new-order vsa "buy" (- avg-price 20) 10)
-        sell-order (h/->new-order vsa "sell" (+ avg-price 20) 10)]
+(defn last-ask-and-bid' [orderbooks]
+  (let [order (first orderbooks)]
+    (remove #(= nil %) [(first (:asks order)) (first (:bids order))])))
 
-    (when (< (count @open-orders) 2)
-      (let [o-resp (api/new-order buy-order)]
-        (if (< 0 (get o-resp :qty 0)) (swap! open-orders conj o-resp)))
-      (let [o-resp (api/new-order sell-order)]
-        (when (< 0 (:qty o-resp)) (swap! open-orders conj o-resp))))))
+(s/defn sell-and-buy [vsa :- schem/vsa
+                      open-orders :- (s/atom schem/orders) orderbooks :- schem/orderbooks]
+  (let [
+        avg-price (->avg-price orderbooks :asks)
+        ;buy-order (h/->new-order vsa "buy" (- avg-price 20) 10)
+        ;sell-order (h/->new-order vsa "sell" (+ avg-price 20) 10)
+
+        last-ask-and-bid (last-ask-and-bid' orderbooks)
+
+        ;last-order-on-book (first orderbooks)
+        ]
+    #_(println spread-first-orderbook)
+
+    (when (and (= 2 (count last-ask-and-bid)) (< (count @open-orders) 2))
+      (let [spread (- (:price (first last-ask-and-bid)) (:price (second last-ask-and-bid)))
+            buy-price (+ (:price (second last-ask-and-bid)) 50)
+            sell-price (- (:price (first last-ask-and-bid)) 10)
+            min-qty (min (:qty (first last-ask-and-bid)) (:qty (second last-ask-and-bid)))
+            qty (int (/ min-qty 2))
+            qty-quantifier (int (* 0.2 qty))
+            sell-qty (- qty qty-quantifier)
+
+            buy-order (h/->new-order vsa "buy" buy-price qty)
+            sell-order (h/->new-order vsa "sell" sell-price sell-qty)]
+        (when (< 60 spread)
+          (println "spread: " spread " - buy: " buy-price
+                   " - sell: " sell-price)
+          (let [o-resp (api/new-order buy-order)]
+            (if (< 0 (get o-resp :qty 0)) (swap! open-orders conj o-resp)))
+          (let [o-resp (api/new-order sell-order)]
+            (when (< 0 (get o-resp :qty 0)) (swap! open-orders conj o-resp))))))))
 
 (s/defn be-a-market-maker-now? [vsa :- schem/vsa
                                 open-orders :- (s/atom schem/orders) orderbooks :- schem/orderbooks]

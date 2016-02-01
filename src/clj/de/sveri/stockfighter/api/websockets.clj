@@ -42,7 +42,10 @@
   [venue stock account execution-response :- s/Str]
   (let [execution (json/read-str execution-response :key-fn keyword :value-fn h/api->date)]
     (if (:ok execution)
-      (do (swap! state/execution-history update (h/->unique-key venue stock account) conj execution)
+      (do
+        ;(println "executed: " execution)
+        ;(clojure.pprint/pprint (subvec (into []  (state/->orderbook (h/->vsa)))  0 2))
+        (swap! state/execution-history update (h/->unique-key venue stock account) conj execution)
           (clean-open-order execution state/open-orders)
           (state/update-booking (:order execution) state/booking))
       (println "something else happened: " execution-response))))
