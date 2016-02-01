@@ -1,6 +1,7 @@
 (ns de.sveri.stockfighter.service.helper
   (:require [de.sveri.stockfighter.schema-api :as schem]
-            [clj-time.format :as f]))
+            [clj-time.format :as f]
+            [schema.core :as s]))
 
 (def common-state (atom {:restart-websockets false}))
 
@@ -23,3 +24,7 @@
   (if (contains? #{:quoteTime :lastTrade :ts :filledAt} key)
     (.toDate (f/parse schem/api-time-format value))
     value))
+
+
+(s/defn ->new-order [{:keys [venue stock account] :as vsa} :- schem/vsa buy-or-sell :- schem/direction price :- s/Num qty :- s/Num]
+        {:account account :venue venue :stock stock :price price :qty qty :direction buy-or-sell :orderType "limit"})

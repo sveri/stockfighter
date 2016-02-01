@@ -5,10 +5,9 @@
             [de.sveri.stockfighter.api.api :as api]
             [immutant.scheduling :refer :all]
             [com.rpl.specter :as spec]
-            [de.sveri.stockfighter.api.config :as conf]))
+            [de.sveri.stockfighter.api.config :as conf]
+            [de.sveri.stockfighter.service.helper :as h]))
 
-(s/defn ->new-order [{:keys [venue stock account] :as vsa} :- schem/vsa buy-or-sell :- schem/direction price :- s/Num qty :- s/Num]
-  {:account account :venue venue :stock stock :price price :qty qty :direction buy-or-sell :orderType "limit"})
 
 
 (s/defn ->avg-price [orderbooks ask-or-bid]
@@ -18,19 +17,21 @@
       (int (/ (reduce + asks) (count asks)))
       0)))
 
-(s/defn be-a-market-maker-now? [{:keys [venue stock account] :as vsa} :- schem/vsa
-                                open-orders :- (s/atom schem/orders) orderbooks :- schem/orderbooks]
+(s/defn sell-and-buy [vsa :- schem/vsa
+                    open-orders :- (s/atom schem/orders) orderbooks :- schem/orderbooks]
   (let [avg-price (->avg-price orderbooks :asks)
-        buy-order (->new-order vsa "buy" (- avg-price 20) 7)
-        sell-order (->new-order vsa "sell" (+ avg-price 20) 7)]
+        buy-order (h/->new-order vsa "buy" (- avg-price 20) 10)
+        sell-order (h/->new-order vsa "sell" (+ avg-price 20) 10)]
 
     (when (< (count @open-orders) 2)
       (let [o-resp (api/new-order buy-order)]
-        (if (< 0 (:qty o-resp)) (swap! open-orders conj o-resp)
-                                #_(state/update-booking o-resp state/booking)))
+        (if (< 0 (get o-resp :qty 0)) (swap! open-orders conj o-resp)))
       (let [o-resp (api/new-order sell-order)]
-        (when (< 0 (:qty o-resp)) (swap! open-orders conj o-resp)
-                                  #_(state/update-booking o-resp state/booking))))))
+        (when (< 0 (:qty o-resp)) (swap! open-orders conj o-resp))))))
+
+(s/defn be-a-market-maker-now? [vsa :- schem/vsa
+                                open-orders :- (s/atom schem/orders) orderbooks :- schem/orderbooks]
+  (sell-and-buy vsa open-orders orderbooks))
 
 ;(def default-qty 20)
 ;

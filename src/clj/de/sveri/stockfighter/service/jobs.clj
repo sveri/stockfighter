@@ -7,23 +7,8 @@
             [de.sveri.stockfighter.service.helper :as h]
             [clj-time.core :as time-core]
             [clj-time.coerce :as time-coerce]
-            [immutant.scheduling :refer :all]))
-
-;(s/defn start-pass-averages* :- s/Any
-;  [{:keys [venue stock account]} :- schem/vsa send-fn :- s/Any conn-uids :- s/Any]
-;  (doseq [uid (:any @conn-uids)]
-;    (send-fn uid [:quotes/averages
-;                  {:bid-avg          (or (calc/get-avg-bid venue stock account state/quote-history) 0)
-;                   :bid-avg-last-10  (or (calc/get-avg-bid venue stock account state/quote-history 10) 0)
-;                   :bid-avg-last-100 (or (calc/get-avg-bid venue stock account state/quote-history 100) 0)}])))
-;
-;(s/defn start-pass-averages :- s/Any [vsa :- schem/vsa {:keys [send-fn connected-uids]} :- s/Any]
-;  (let [key (keyword (str "quot-avg-" (h/->unique-key vsa)))]
-;    (schedule #(start-pass-averages* vsa send-fn connected-uids) (-> (id key) (every 5 :seconds)))))
-;
-;(defn delete-pass-averages [vsa]
-;  (stop (id (keyword (str "quot-avg-" (h/->unique-key vsa))))))
-
+            [immutant.scheduling :refer :all]
+            [de.sveri.stockfighter.api.api :as api]))
 
 (s/defn start-pass-executions* :- s/Any
   [{:keys [venue stock account]} :- schem/vsa send-fn :- s/Any conn-uids :- s/Any]
@@ -70,20 +55,40 @@
   [venue stock open-orders :- (s/atom schem/orders)]
   (let [deleted-ids (atom #{})]
     (doseq [order @open-orders]
-     (let [now (time-coerce/to-long (time-core/now))
-           order-time (.getTime (:ts order))
-           diff (- now order-time)]
-       (when (< 5000 diff)
-         (state/update-booking (stock-api/delete-order venue stock (:id order)) state/booking)
-         (swap! deleted-ids conj (:id order)))))
+      (let [now (time-coerce/to-long (time-core/now))
+            order-time (.getTime (:ts order))
+            diff (- now order-time)]
+        (when (< 3000 diff)
+          (state/update-booking (stock-api/delete-order venue stock (:id order)) state/booking)
+          (swap! deleted-ids conj (:id order)))))
     (swap! open-orders (fn [old-orders] (remove #(contains? @deleted-ids (:id %)) old-orders)))))
 
 (s/defn start-clean-open-orders :- s/Any
   [venue stock open-orders :- (s/atom schem/orders)]
-  (schedule #(start-clean-open-orders* venue stock open-orders) (-> (id "clean-orders") (every 1000 ))))
+  (schedule #(start-clean-open-orders* venue stock open-orders) (-> (id "clean-orders") (every 100 ))))
 
 (defn stop-clean-open-orders []
   (stop (id "clean-orders")))
+
+
+(s/defn start-correcting-orders* :- s/Any
+  [vsa ]
+  (when (< (:position @state/booking) -50)
+    (println "correcting buy")
+    (let [avg-bid (:avg-bid @state/booking)
+          order (h/->new-order vsa "buy" (- avg-bid 10) 20)]
+      (api/new-order order)))
+  (when (< 50 (:position @state/booking))
+    (println "correcting sell")
+    (let [avg-ask (:avg-ask @state/booking)
+          order (h/->new-order vsa "sell" (+ avg-ask 10) 20)]
+      (api/new-order order))))
+
+(s/defn start-correcting-orders :- s/Any [vsa]
+  (schedule #(start-correcting-orders* vsa) (-> (id "correcting-orders") (every 3000 ))))
+
+(defn stop-correcting-orders []
+  (stop (id "correcting-orders")))
 
 
 (s/defn start-pass-booking* :- s/Any

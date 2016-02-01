@@ -21,19 +21,26 @@
 (s/defn ->new-order [{:keys [venue stock account]} :- schem/vsa buy-or-sell :- schem/direction price :- s/Num qty :- s/Num]
   {:account account :venue venue :stock stock :price price :qty qty :direction buy-or-sell :orderType "limit"})
 
+(def tick-allowed (atom true))
+
 (s/defn tick-bot [{:keys [venue stock] :as vsa} :- schem/vsa]
+  ;(when (and @tick-allowed @bot-enabled)
   (when @bot-enabled
+    (reset! tick-allowed false)
     (three/be-a-market-maker-now? vsa state/open-orders
-                                  (get @state/order-book (h/->unique-key venue stock)))))
+                                  (get @state/order-book (h/->unique-key venue stock)))
+    (reset! tick-allowed true)))
 
 (s/defn enable-bots :- s/Any
   [{:keys [venue stock account] :as vsa}]
   (println "enabling autobuy for: " venue stock account)
   (reset! bot-enabled true)
-  (schedule #(tick-bot vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 1500))))
+  (schedule #(tick-bot vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 200))))
 
 
-(defn disable-bot [] (reset! bot-enabled false))
+(defn disable-bot []
+  (reset! bot-enabled false)
+  (stop (id (str "bot-" (h/->unique-key (h/->vsa))))))
 
 
 
@@ -44,13 +51,17 @@
 (defn start-level []
   (let [game-info (api/start-game lvl)]
     (if (:ok game-info)
-      (let [vsa (h/->vsa)]
+      (do
         (swap! h/common-state assoc :game-info game-info)
+        (let [vsa (h/->vsa)]
           (ws/connect-executions vsa)
-          (jobs/start-order-book (:venue vsa) (:stock vsa) state/order-book nil))
+          (jobs/start-order-book (:venue vsa) (:stock vsa) state/order-book nil)
+          (jobs/start-clean-open-orders (:venue vsa) (:stock vsa) state/open-orders)
+          (jobs/start-correcting-orders vsa)))
       (println "error starting game: " game-info))))
 
 (defn stop-level []
   (let [resp (api/stop-game (h/->instanceid))]
+
     (println "stopped level")
     (clojure.pprint/pprint resp)))
