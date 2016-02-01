@@ -34,20 +34,21 @@
         ]
     #_(println spread-first-orderbook)
 
-    (when (and (= 2 (count last-ask-and-bid)) (< (count @open-orders) 2))
+    (when (and (= 2 (count last-ask-and-bid)) (< (count @open-orders) 3))
       (let [spread (- (:price (first last-ask-and-bid)) (:price (second last-ask-and-bid)))
-            buy-price (+ (:price (second last-ask-and-bid)) 50)
-            sell-price (- (:price (first last-ask-and-bid)) 10)
+            ;buy-price (+ (:price (second last-ask-and-bid)) 50)
+            ;sell-price (- (:price (first last-ask-and-bid)) 10)
             min-qty (min (:qty (first last-ask-and-bid)) (:qty (second last-ask-and-bid)))
             qty (int (/ min-qty 2))
-            ;qty-quantified (- qty (int (* 0.2 qty)))
+            qty-quantified (- qty (int (* 0.2 qty)))
             ;sell-qty (- qty qty-quantifier)
 
-            buy-order (h/->new-order vsa "buy" buy-price qty)
-            sell-order (h/->new-order vsa "sell" sell-price qty)]
-        (when (< 60 spread)
-          (println "spread: " spread " - buy: " buy-price
-                   " - sell: " sell-price)
+            buy-order (h/->new-order vsa "buy" (- avg-price 20) qty-quantified)
+            sell-order (h/->new-order vsa "sell" (+ avg-price 20) qty-quantified)
+            ]
+        (when (< 20 spread)
+          ;(println "spread: " spread " - buy: " buy-price
+          ;         " - sell: " sell-price)
           (let [buy-resp (api/new-order buy-order)
                 sell-resp (api/new-order sell-order)]
             (when (< 0 (get @buy-resp :qty 0)) (swap! open-orders conj @buy-resp))

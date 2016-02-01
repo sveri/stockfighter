@@ -25,7 +25,7 @@
 
 (s/defn game-info* :- s/Any
   [instance-id :- s/Num send-fn :- s/Any conn-uids :- s/Any]
-  (let [game-info (stock-api/get-level-info instance-id)]
+  (let [game-info @(stock-api/get-level-info instance-id)]
     (swap! h/common-state assoc :game-state game-info)
     (doseq [uid (:any @conn-uids)] (send-fn uid [:game/info game-info]))))
 
@@ -56,16 +56,17 @@
   [venue stock open-orders :- (s/atom schem/orders)]
   (when @can-clean
     (reset! can-clean false)
-    (let [deleted-ids (atom #{})]
+    (let [deleted-ids (atom #{})
+          deleted-futures (atom [])]
       (doseq [order @open-orders]
         (let [now (time-coerce/to-long (time-core/now))
               order-time (.getTime (:ts order))
               diff (- now order-time)]
-          ;(println diff " - " now " - " order-time)
           (when (< -55000 diff)
-            (println "cleaning open order" order)
-            (state/update-booking (stock-api/delete-order venue stock (:id order)) state/booking)
-            (swap! deleted-ids conj (:id order)))))
+            (swap! deleted-futures conj (stock-api/delete-order venue stock (:id order))))))
+      (doseq [deleted-future @deleted-futures]
+        (state/update-booking @deleted-future state/booking)
+        (swap! deleted-ids conj (:id @deleted-future)))
       (swap! open-orders (fn [old-orders] (remove #(contains? @deleted-ids (:id %)) old-orders))))
     (reset! can-clean true)))
 
