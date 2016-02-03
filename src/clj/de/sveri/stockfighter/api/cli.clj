@@ -8,7 +8,7 @@
             [de.sveri.stockfighter.schema-api :as schem]
             [schema.core :as s]
             [immutant.scheduling :refer :all]
-            [de.sveri.stockfighter.api.lvl-four :as four]
+            [de.sveri.stockfighter.api.turnbased :as turn]
             [de.sveri.stockfighter.api.lvl-three :as three]))
 
 
@@ -31,11 +31,20 @@
                                   (get @state/order-book (h/->unique-key venue stock)))
     (reset! tick-allowed true)))
 
+(defn start-turn-based [vsa]
+  (when (and @tick-allowed @bot-enabled)
+    (reset! tick-allowed false)
+    (turn/entry vsa)
+    (reset! tick-allowed true)))
+
 (s/defn enable-bots :- s/Any
-  [{:keys [venue stock account] :as vsa}]
-  (println "enabling autobuy for: " venue stock account)
-  (reset! bot-enabled true)
-  (schedule #(tick-bot vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 200))))
+  []
+  ;[{:keys [venue stock account] :as vsa}]
+  (let [vsa (h/->vsa)]
+    (println "enabling autobuy for: " vsa)
+    (reset! bot-enabled true)
+    #_(schedule #(tick-bot vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 200)))
+    (schedule #(start-turn-based vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 5000)))))
 
 
 (defn disable-bot []
@@ -55,9 +64,11 @@
         (swap! h/common-state assoc :game-info game-info)
         (let [vsa (h/->vsa)]
           (ws/connect-executions vsa)
+          (ws/connect-quotes vsa)
           (jobs/start-order-book (:venue vsa) (:stock vsa) state/order-book nil)
-          (jobs/start-clean-open-orders (:venue vsa) (:stock vsa) state/open-orders)
-          (jobs/start-correcting-orders vsa)))
+          ;(jobs/start-clean-open-orders (:venue vsa) (:stock vsa) state/open-orders)
+          ;(jobs/start-correcting-orders vsa)
+          ))
       (println "error starting game: " game-info))))
 
 (defn stop-level []

@@ -125,7 +125,7 @@
                                  :optimizations :advanced
                                  :pretty-print  false}}}}
 
-  :profiles {:dev     {:repl-options {:init-ns          de.sveri.stockfighter.user}
+  :profiles {:dev     {:repl-options {:init-ns          de.sveri.stockfighter.api.cli}
 
                        :plugins      [[lein-ring "0.9.0"]
                                       [lein-figwheel "0.5.0-2"]
