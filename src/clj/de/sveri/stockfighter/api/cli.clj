@@ -44,7 +44,7 @@
     (println "enabling autobuy for: " vsa)
     (reset! bot-enabled true)
     #_(schedule #(tick-bot vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 200)))
-    (schedule #(start-turn-based vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 5000)))))
+    (schedule #(start-turn-based vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 10000)))))
 
 
 (defn disable-bot []
