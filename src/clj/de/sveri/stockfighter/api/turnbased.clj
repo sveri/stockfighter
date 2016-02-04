@@ -9,7 +9,7 @@
             [clj-time.coerce :as time-coerce]
             [com.rpl.specter :as spec]))
 
-(def price-spread 20)
+(def price-spread 50)
 
 (s/defn ->avg-price [orderbooks ask-or-bid & [last]]
   (let [last' (or last 6)
@@ -19,15 +19,25 @@
       (int (/ (reduce + asks) (count asks)))
       0)))
 
+;buy order 10
+; sell order 10.40
+
+;avg-price 10.60
+; avg-buy 10.40
+; avg-sell 10.80
+
 (s/defn clean-open-orders :- s/Any
   [venue stock open-orders :- (s/atom schem/orders) orderbooks]
   (let [deleted-ids (atom #{})
         deleted-futures (atom [])
-        avg-price (->avg-price orderbooks :asks)]
+        avg-price (->avg-price orderbooks :asks)
+        avg-buy (- avg-price price-spread)
+        avg-sell (+ avg-price price-spread)]
     (doseq [order @open-orders]
-      (if (and (= "buy" (:direction order)) )
-        (when (< -55000 diff)
-          (swap! deleted-futures conj (api/delete-order venue stock (:id order))))))
+      (when (and (= "buy" (:direction order)) (<= (+ (:price order) (* 2 price-spread)) avg-buy))
+        (swap! deleted-futures conj (api/delete-order venue stock (:id order))))
+      (when (and (= "sell" (:direction order)) (<= avg-sell (- (:price order) (* 2 price-spread))))
+        (swap! deleted-futures conj (api/delete-order venue stock (:id order)))))
     (doseq [deleted-future @deleted-futures]
       (state/update-booking @deleted-future state/booking)
       (swap! deleted-ids conj (:id @deleted-future)))
@@ -66,7 +76,7 @@
         spread (->avg-spread orderbooks)
         price-adjust (- (/ spread 2) 1)
 
-        qty-quantified 22
+        qty-quantified 7
         orders (atom [])
         order-refs (atom [])
         buy-order-fn #(h/->new-order vsa "buy" (- avg-price price-spread) qty-quantified)
@@ -74,17 +84,17 @@
         ;buy-order-fn #(h/->new-order vsa "buy" (- avg-price price-adjust %) qty-quantified)
         ;sell-order-fn #(h/->new-order vsa "sell" (+ avg-price price-adjust %) qty-quantified)
         position (:position @state/booking)
-        max-pos -41]
+        max-pos -31]
       ;(println (:nav @state/booking) (:position @state/booking) (- avg-price price-adjust) (+ avg-price price-adjust))
       ;(println (sort-by-val (clean-map @succ-buy-sell) :qty))
       ;(println (clean-map (sort-by-val @succ-buy-sell :qty)))
       ;(println (sort-by-val @no-succ-buy-sell :qty))
       (doseq [i (range 2 3)]
         (cond
-          (and (<= position (h/abs max-pos)) (<= max-pos position)) (do  (swap! orders conj (buy-order-fn i))
-                                                                      (swap! orders conj (sell-order-fn i)))
-          (< (h/abs max-pos) position) (do  (swap! orders conj (sell-order-fn i)))
-          (< position max-pos) (do  (swap! orders conj (buy-order-fn i))))
+          (and (<= position (h/abs max-pos)) (<= max-pos position)) (do  (swap! orders conj (buy-order-fn))
+                                                                      (swap! orders conj (sell-order-fn)))
+          (< (h/abs max-pos) position) (do  (swap! orders conj (sell-order-fn)))
+          (< position max-pos) (do  (swap! orders conj (buy-order-fn))))
         )
     (doseq [order @orders]
       (swap! order-refs conj (api/new-order order)))
@@ -150,7 +160,7 @@
   (let [venue (:venue vsa)
         stock (:stock vsa)]
     ;(println "clean")
-    (clean-open-orders venue stock state/open-orders)
+    (clean-open-orders venue stock state/open-orders (get @state/order-book (h/->unique-key venue stock)))
     (Thread/sleep 300)
     ;(println "end clean")
     ;(println "sell/buy")
