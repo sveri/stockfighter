@@ -14,7 +14,7 @@
 
 (def bot-enabled (atom false))
 
-(def lvl "sell_side")
+(def lvl "dueling_bulldozers")
 
 
 
@@ -44,7 +44,7 @@
     (println "enabling autobuy for: " vsa)
     (reset! bot-enabled true)
     #_(schedule #(tick-bot vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 200)))
-    (schedule #(start-turn-based vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 800)))))
+    (schedule #(start-turn-based vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 1000)))))
 
 
 (defn disable-bot []
