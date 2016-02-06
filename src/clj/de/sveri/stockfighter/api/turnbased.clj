@@ -35,7 +35,7 @@
 (def cancelled-order-count (atom 0))
 
 (s/defn ->avg-price [orderbooks ask-or-bid & [last]]
-  (let [last' (or last 6)
+  (let [last' (or last 10)
         asks (spec/select [spec/ALL ask-or-bid spec/FIRST :price]
                           (subvec (into [] orderbooks) 0 (if (< last' (count orderbooks)) last' (count orderbooks))))]
     (if (not-empty asks)
@@ -50,18 +50,18 @@
         avg-sell (+ bid-ask-mean price-spread)
         loss-modifier 50
         loss-price (+ loss-modifier (* 2 price-spread))
-        best-ask (state/best-ask)
-        best-bid (state/best-bid)]
-    (when (and best-ask (< best-ask 9000) (< 7000 best-ask))
-      (doseq [order @open-orders]
-        (when (or (and (= "buy" (:direction order)) (<= (+ (:price order) loss-price) avg-buy))
-                  (and (= "sell" (:direction order)) (<= avg-sell (- (:price order) loss-price))))
-          (swap! deleted-futures conj (api/delete-order venue stock (:id order)))
-          (swap! cancelled-order-count + (:qty order))))
-      (doseq [deleted-future @deleted-futures]
-        (state/update-booking @deleted-future state/booking)
-        (swap! deleted-ids conj (:id @deleted-future)))
-      (swap! open-orders (fn [old-orders] (remove #(contains? @deleted-ids (:id %)) old-orders))))))
+        ;best-ask (state/best-ask)
+        ;best-bid (state/best-bid)
+        ]
+    (doseq [order @open-orders]
+      (when (or (and (= "buy" (:direction order)) (<= (+ (:price order) loss-price) avg-buy))
+                (and (= "sell" (:direction order)) (<= avg-sell (- (:price order) loss-price))))
+        (swap! deleted-futures conj (api/delete-order venue stock (:id order)))
+        (swap! cancelled-order-count + (:qty order))))
+    (doseq [deleted-future @deleted-futures]
+      (state/update-booking @deleted-future state/booking)
+      (swap! deleted-ids conj (:id @deleted-future)))
+    (swap! open-orders (fn [old-orders] (remove #(contains? @deleted-ids (:id %)) old-orders)))))
 
 (defn ->avg-spread [orderbooks]
   (let [avg-spread (- (->avg-price orderbooks :asks 30) (->avg-price orderbooks :bids 30))]
@@ -82,8 +82,6 @@
                       open-orders :- (s/atom schem/orders) orderbooks :- schem/orderbooks
                       avg-price]
   (let [spread (->avg-spread orderbooks)
-        ;price-adjust (- (/ spread 2) 1)
-
         qty-quantified 20
         orders (atom [])
         order-refs (atom [])
@@ -108,24 +106,25 @@
     ))
 ;))
 
+(defn get-bid-ask-mean [orderbooks & [last]]
+  (let [avg-ask (->avg-price orderbooks :asks (or last 6))
+        avg-bid (->avg-price orderbooks :bids (or last 6))
+        avg-spread (- avg-ask avg-bid)]
+    (+ avg-bid (int (/ avg-spread 2)))))
 
 (defn entry [vsa]
   (let [venue (:venue vsa)
         stock (:stock vsa)
-        orderbooks (get @state/order-book (h/->unique-key venue stock))
-        avg-ask (->avg-price orderbooks :asks)
-        avg-bid (->avg-price orderbooks :bids)
-        avg-spread (- avg-ask avg-bid)
-        bid-ask-mean (+ avg-bid (int (/ avg-spread 2)))]
+        orderbooks (get @state/order-book (h/->unique-key venue stock))]
     ;(println bid-ask-mean avg-ask avg-bid avg-spread)
     (println @state/booking)
     (println @cancelled-order-count)
-    (clean-open-orders venue stock state/open-orders bid-ask-mean)
+    (clean-open-orders venue stock state/open-orders (get-bid-ask-mean orderbooks))
     ;(Thread/sleep 300)
     ;(println "end clean")
     ;(println "sell/buy")
     ;(correct-orders vsa)
-    (sell-and-buy vsa state/open-orders orderbooks bid-ask-mean)
+    (sell-and-buy vsa state/open-orders orderbooks (get-bid-ask-mean orderbooks 1))
     ;(println "-------------------")
     ;(println "eand sell/buy")
     ;(println "correct")

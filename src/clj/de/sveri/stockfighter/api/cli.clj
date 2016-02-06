@@ -10,12 +10,14 @@
             [immutant.scheduling :refer :all]
             [de.sveri.stockfighter.api.turnbased :as turn]
             [de.sveri.stockfighter.api.lvl-three :as three]
+            [de.sveri.stockfighter.api.turn-lvl3 :as t-three]
             [live-chart :as c]))
 
 
 (def bot-enabled (atom false))
 
-(def lvl "dueling_bulldozers")
+(def lvl "sell_side")
+;(def lvl "dueling_bulldozers")
 
 
 
@@ -35,7 +37,7 @@
 (defn start-turn-based [vsa]
   (when (and @tick-allowed @bot-enabled)
     (reset! tick-allowed false)
-    (turn/entry vsa)
+    (t-three/entry vsa)
     (reset! tick-allowed true)))
 
 (s/defn enable-bots :- s/Any
@@ -74,9 +76,17 @@
 
 (defn stop-level []
   (let [resp @(api/stop-game (h/->instanceid))]
-
     (println "stopped level")
     (clojure.pprint/pprint resp)))
 
+(defn get-order-book-ask [] (state/get-order-book-ask (h/->vsa)))
 
-(c/show (c/time-chart [state/best-ask state/best-bid] :repaint-speed 2000) :title "some states")
+(defn get-avg-asks [] (t-three/->avg-price (state/->orderbook (h/->vsa)) :asks))
+
+;first red
+;second blue
+;(c/show (c/time-chart [state/best-ask] :repaint-speed 2000) :title "some states")
+;(c/show (c/time-chart [ get-order-book-ask] :repaint-speed 500 :y-min 5000) :title "some states")
+;(c/show (c/time-chart [state/best-quote-ask get-avg-asks] :repaint-speed 2000 :time-periods 500 :y-min 5000 :y-max 8000) :title "some states")
+;(c/show (c/time-chart [state/best-quote-ask state/best-quote-bid] :repaint-speed 2000 :time-periods 500 :y-min 5000 :y-max 8000) :title "some states")
+(c/show (c/time-chart [state/best-quote-ask state/best-quote-bid get-avg-asks] :repaint-speed 2000 :time-periods 500 :y-min 10000 :y-max 17000) :title "some states")

@@ -8,7 +8,7 @@
 (defn rand1 [] (rand 1))
 
 
-(c/show (c/time-chart [state/best-ask state/best-bid] :repaint-speed 2000) :title "test random funcs")
+(c/show (c/time-chart [state/best-quote-ask state/best-quote-bid] :repaint-speed 2000) :title "test random funcs")
 
 ;(def f (frame :title "Go Go Go"
 ;              :content "iatern"))
