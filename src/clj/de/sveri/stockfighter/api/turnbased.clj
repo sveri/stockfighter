@@ -49,19 +49,19 @@
         avg-buy (- bid-ask-mean price-spread)
         avg-sell (+ bid-ask-mean price-spread)
         loss-modifier 50
-        loss-price (+ loss-modifier (* 2 price-spread))]
-    (doseq [order @open-orders]
-      (when (or (and (= "buy" (:direction order)) (<= (+ (:price order) loss-price) avg-buy))
-                (and (= "sell" (:direction order)) (<= avg-sell (- (:price order) loss-price))))
-        (swap! deleted-futures conj (api/delete-order venue stock (:id order)))
-        (swap! cancelled-order-count + (:qty order)))
-      #_(when (and (= "sell" (:direction order)) (<= avg-sell (- (:price order) loss-price)))
-        (swap! deleted-futures conj (api/delete-order venue stock (:id order)))
-        (swap! cancelled-order-count + (:qty order))))
-    (doseq [deleted-future @deleted-futures]
-      (state/update-booking @deleted-future state/booking)
-      (swap! deleted-ids conj (:id @deleted-future)))
-    (swap! open-orders (fn [old-orders] (remove #(contains? @deleted-ids (:id %)) old-orders)))))
+        loss-price (+ loss-modifier (* 2 price-spread))
+        best-ask (state/best-ask)
+        best-bid (state/best-bid)]
+    (when (and best-ask (< best-ask 9000) (< 7000 best-ask))
+      (doseq [order @open-orders]
+        (when (or (and (= "buy" (:direction order)) (<= (+ (:price order) loss-price) avg-buy))
+                  (and (= "sell" (:direction order)) (<= avg-sell (- (:price order) loss-price))))
+          (swap! deleted-futures conj (api/delete-order venue stock (:id order)))
+          (swap! cancelled-order-count + (:qty order))))
+      (doseq [deleted-future @deleted-futures]
+        (state/update-booking @deleted-future state/booking)
+        (swap! deleted-ids conj (:id @deleted-future)))
+      (swap! open-orders (fn [old-orders] (remove #(contains? @deleted-ids (:id %)) old-orders))))))
 
 (defn ->avg-spread [orderbooks]
   (let [avg-spread (- (->avg-price orderbooks :asks 30) (->avg-price orderbooks :bids 30))]
@@ -84,7 +84,7 @@
   (let [spread (->avg-spread orderbooks)
         ;price-adjust (- (/ spread 2) 1)
 
-        qty-quantified 30
+        qty-quantified 20
         orders (atom [])
         order-refs (atom [])
         buy-order-fn #(h/->new-order vsa "buy" (- avg-price price-spread) qty-quantified)
@@ -104,7 +104,7 @@
           (if (and (< position (h/abs max-pos)) (< max-pos position))
             (add-stats succ-buy-sell spread qty-quantified r)
             (add-stats no-succ-buy-sell spread qty-quantified r))
-         (swap! open-orders conj r))))
+          (swap! open-orders conj r))))
     ))
 ;))
 

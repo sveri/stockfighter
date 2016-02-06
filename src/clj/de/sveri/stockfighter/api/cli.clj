@@ -9,7 +9,8 @@
             [schema.core :as s]
             [immutant.scheduling :refer :all]
             [de.sveri.stockfighter.api.turnbased :as turn]
-            [de.sveri.stockfighter.api.lvl-three :as three]))
+            [de.sveri.stockfighter.api.lvl-three :as three]
+            [live-chart :as c]))
 
 
 (def bot-enabled (atom false))
@@ -76,3 +77,6 @@
 
     (println "stopped level")
     (clojure.pprint/pprint resp)))
+
+
+(c/show (c/time-chart [state/best-ask state/best-bid] :repaint-speed 2000) :title "some states")

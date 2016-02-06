@@ -1,13 +1,21 @@
 (ns de.sveri.stockfighter.gui.core
-  (:require [seesaw.core :refer :all]))
+  (:require [seesaw.core :refer :all]
+            [live-chart :as c]
+            [de.sveri.stockfighter.api.state :as state]
+            [de.sveri.stockfighter.service.helper :as h]))
 
 
-(def f (frame :title "Go Go Go"
-              :content "iatern"))
+(defn rand1 [] (rand 1))
 
-(defn create-view []
-  (-> f pack! show!))
 
-(create-view)
+(c/show (c/time-chart [state/best-ask state/best-bid] :repaint-speed 2000) :title "test random funcs")
 
-(config! f :content ",")
+;(def f (frame :title "Go Go Go"
+;              :content "iatern"))
+;
+;(defn create-view []
+;  (-> f pack! show!))
+;
+;(create-view)
+;
+;(config! f :content "dtaretrae,")

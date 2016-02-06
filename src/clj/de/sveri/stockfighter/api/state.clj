@@ -9,7 +9,10 @@
 
 
 (def quote-history (atom {}))
-(defn ->quotes [vsa] (get @quote-history (h/->unique-key vsa)))
+(s/defn ->quotes :- [schem/quote] [vsa] (get @quote-history (h/->unique-key vsa)))
+
+(defn best-ask [] (:ask (first (->quotes (h/->vsa)))))
+(defn best-bid [] (:bid (first (->quotes (h/->vsa)))))
 
 (def execution-history (atom {}))
 (defn ->executions [vsa] (get @execution-history (h/->unique-key vsa)))
