@@ -88,7 +88,8 @@
                  [clj-time "0.11.0"]
                  [org.clojure/core.match "0.3.0-alpha4"]
                  [seesaw "1.4.5"]
-                 [live-chart "0.1.1"]]
+                 [live-chart "0.1.1"]
+                 [incanter "1.5.6"]]
 
   :plugins [[de.sveri/closp-crud "0.1.4"]
             [lein-cljsbuild "1.1.1"]]

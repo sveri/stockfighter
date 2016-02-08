@@ -14,8 +14,27 @@
 (defn best-quote-ask [] (:ask (first (->quotes (h/->vsa)))))
 (defn best-quote-bid [] (:bid (first (->quotes (h/->vsa)))))
 
+(defn get-avg-quotes [bid-or-ask last-x]
+  (let [quotes (->quotes (h/->vsa))]
+    (int (/ (reduce + (map bid-or-ask (h/subvec-size-or-orig (filter #(not (nil? (bid-or-ask %))) quotes) last-x))) last-x))))
+
 (def execution-history (atom {}))
 (defn ->executions [vsa] (get @execution-history (h/->unique-key vsa)))
+
+(defn get-avg-executed [buy-or-sell last-x]
+  (let [execs (->executions (h/->vsa))
+        filtered-execs (into [] (filter #(= buy-or-sell (get-in % [:order :direction])) execs))
+        last-x' (if (< (count filtered-execs) last-x) (count filtered-execs) last-x) ]
+    (when (< 0 last-x') (int (/ (reduce + (map :price (subvec filtered-execs 0 last-x'))) last-x')))))
+
+
+(defn get-excuted-bid []
+  (let [execs (->executions (h/->vsa))]
+    (:price (first (filter #(= "buy" (get-in % [:order :direction])) execs)))))
+
+(defn get-excuted-ask []
+  (let [execs (->executions (h/->vsa))]
+    (:price (first (filter #(= "sell" (get-in % [:order :direction])) execs)))))
 
 ; nav = cash + (shares * share_price)
 (def booking (atom {:nav 0 :position 0 :cash 0 :avg-bid 0 :avg-ask 0 :ask-count 0 :bid-count 0 :buy-sell-lock false}))

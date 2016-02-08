@@ -52,18 +52,36 @@
 
 
 (def can-clean (atom true))
+(defn remove-already-closed [venue stock open-orders]
+  (let [deleted-futures (atom [])]
+    (doseq [order @open-orders]
+     (swap! deleted-futures conj (api/->order-status venue stock (:id order))))
+    (doseq [deleted-future @deleted-futures]
+      (when-not (:open deleted-future)
+        (swap! open-orders (fn [old-orders] (remove #(= (:id deleted-future) (:id %)) old-orders)))))))
+
+
 (s/defn start-clean-open-orders* :- s/Any
   [venue stock open-orders :- (s/atom schem/orders)]
   (when @can-clean
     (reset! can-clean false)
+    (remove-already-closed venue stock open-orders)
     (let [deleted-ids (atom #{})
-          deleted-futures (atom [])]
+          deleted-futures (atom [])
+          loss-modifier 50
+          price-spread 40
+          avg-buy (state/get-avg-quotes :bid 10)
+          avg-sell (state/get-avg-quotes :ask 20)
+          ;avg-sell 20
+          loss-price (+ loss-modifier (* 2 price-spread))]
       (doseq [order @open-orders]
-        (let [now (time-coerce/to-long (time-core/now))
-              order-time (.getTime (:ts order))
-              diff (- now order-time)]
-          (when (< -55000 diff)
-            (swap! deleted-futures conj (stock-api/delete-order venue stock (:id order))))))
+        (when (or (and (= "buy" (:direction order)) (<= (+ (:price order) loss-price) avg-buy))
+                  (and (= "sell" (:direction order)) (<= avg-sell (- (:price order) loss-price))))
+          (when (= "buy" (:direction order))
+            (println "avg buy" avg-buy " order-price: " (:price order)))
+          (when (= "sell" (:direction order))
+            (println "avg sell" avg-buy " order-price: " (:price order)))
+          (swap! deleted-futures conj (api/delete-order venue stock (:id order)))))
       (doseq [deleted-future @deleted-futures]
         (state/update-booking @deleted-future state/booking)
         (swap! deleted-ids conj (:id @deleted-future)))
@@ -72,7 +90,7 @@
 
 (s/defn start-clean-open-orders :- s/Any
   [venue stock open-orders :- (s/atom schem/orders)]
-  (schedule #(start-clean-open-orders* venue stock open-orders) (-> (id "clean-orders") (every 2000))))
+  (schedule #(start-clean-open-orders* venue stock open-orders) (-> (id "clean-orders") (every 5000))))
 
 (defn stop-clean-open-orders []
   (stop (id "clean-orders")))

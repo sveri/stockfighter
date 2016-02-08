@@ -26,6 +26,7 @@
 
 (def tick-allowed (atom true))
 
+
 (s/defn tick-bot [{:keys [venue stock] :as vsa} :- schem/vsa]
   (when (and @tick-allowed @bot-enabled)
   ;(when @bot-enabled
@@ -42,11 +43,9 @@
 
 (s/defn enable-bots :- s/Any
   []
-  ;[{:keys [venue stock account] :as vsa}]
   (let [vsa (h/->vsa)]
     (println "enabling autobuy for: " vsa)
     (reset! bot-enabled true)
-    #_(schedule #(tick-bot vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 200)))
     (schedule #(start-turn-based vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 1000)))))
 
 
@@ -69,7 +68,7 @@
           (ws/connect-executions vsa)
           (ws/connect-quotes vsa)
           (jobs/start-order-book (:venue vsa) (:stock vsa) state/order-book nil)
-          ;(jobs/start-clean-open-orders (:venue vsa) (:stock vsa) state/open-orders)
+          (jobs/start-clean-open-orders (:venue vsa) (:stock vsa) state/open-orders)
           ;(jobs/start-correcting-orders vsa)
           ))
       (println "error starting game: " game-info))))
@@ -83,10 +82,17 @@
 
 (defn get-avg-asks [] (t-three/->avg-price (state/->orderbook (h/->vsa)) :asks))
 
+;(defn get-mean-bid [] (first (t-three/statistics)))
+;(defn get-mean-ask [] (second (t-three/statistics)))
+
 ;first red
 ;second blue
+;third green
 ;(c/show (c/time-chart [state/best-ask] :repaint-speed 2000) :title "some states")
 ;(c/show (c/time-chart [ get-order-book-ask] :repaint-speed 500 :y-min 5000) :title "some states")
 ;(c/show (c/time-chart [state/best-quote-ask get-avg-asks] :repaint-speed 2000 :time-periods 500 :y-min 5000 :y-max 8000) :title "some states")
 ;(c/show (c/time-chart [state/best-quote-ask state/best-quote-bid] :repaint-speed 2000 :time-periods 500 :y-min 5000 :y-max 8000) :title "some states")
-(c/show (c/time-chart [state/best-quote-ask state/best-quote-bid get-avg-asks] :repaint-speed 2000 :time-periods 500 :y-min 10000 :y-max 17000) :title "some states")
+;(c/show (c/time-chart [state/best-quote-ask state/best-quote-bid get-avg-asks] :repaint-speed 2000 :time-periods 500 :y-min 4000 :y-max 8000) :title "some states")
+;(c/show (c/time-chart [t-three/get-bid-price state/get-excuted-bid] :repaint-speed 2000 :time-periods 500 :y-min 2000) :title "some states")
+;(c/show (c/time-chart [t-three/get-ask-price state/get-excuted-ask] :repaint-speed 2000 :time-periods 500 :y-min 2000) :title "some states")
+(c/show (c/time-chart [state/get-excuted-bid state/get-excuted-ask] :repaint-speed 2000 :time-periods 500 :y-min 2000) :title "some states")
