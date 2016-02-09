@@ -2,7 +2,8 @@
   (:require [de.sveri.stockfighter.schema-api :as schem]
             [schema.core :as s]
             [taoensso.timbre :as timb]
-            [de.sveri.stockfighter.service.helper :as h]))
+            [de.sveri.stockfighter.service.helper :as h]
+            [incanter.stats :as stats]))
 
 (def quotes-socket (atom {}))
 (def executions-socket (atom {}))
@@ -11,12 +12,17 @@
 (def quote-history (atom {}))
 (s/defn ->quotes :- [schem/quote] [vsa] (get @quote-history (h/->unique-key vsa)))
 
-(defn best-quote-ask [] (:ask (first (->quotes (h/->vsa)))))
-(defn best-quote-bid [] (:bid (first (->quotes (h/->vsa)))))
+(defn last-quote-ask [] (:ask (first (filter #(not (nil? (:ask %))) (->quotes (h/->vsa))))))
+(defn last-quote-bid [] (:bid (first (filter #(not (nil? (:bid %))) (->quotes (h/->vsa))))))
 
 (defn get-avg-quotes [bid-or-ask last-x]
-  (let [quotes (->quotes (h/->vsa))]
-    (int (/ (reduce + (map bid-or-ask (h/subvec-size-or-orig (filter #(not (nil? (bid-or-ask %))) quotes) last-x))) last-x))))
+  (let [quotes (->quotes (h/->vsa))
+        relevant-quotes (map bid-or-ask (h/subvec-size-or-orig (filter #(not (nil? (bid-or-ask %))) quotes) last-x))]
+    ;(println (int (/ (reduce + relevant-quotes) last-x)))
+    ;(println (stats/mean relevant-quotes))
+    ;(println (stats/median relevant-quotes))
+    ;(println "---------")
+    (int (/ (reduce + relevant-quotes) last-x))))
 
 (def execution-history (atom {}))
 (defn ->executions [vsa] (get @execution-history (h/->unique-key vsa)))

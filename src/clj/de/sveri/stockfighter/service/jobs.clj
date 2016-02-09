@@ -63,24 +63,25 @@
 
 (s/defn start-clean-open-orders* :- s/Any
   [venue stock open-orders :- (s/atom schem/orders)]
-  (when @can-clean
+  (when (and (= 1 2) @can-clean)
+    (println "clein")
     (reset! can-clean false)
     (remove-already-closed venue stock open-orders)
     (let [deleted-ids (atom #{})
           deleted-futures (atom [])
-          loss-modifier 50
+          loss-modifier 40
           price-spread 40
           avg-buy (state/get-avg-quotes :bid 10)
-          avg-sell (state/get-avg-quotes :ask 20)
+          avg-sell (state/get-avg-quotes :ask 10)
           ;avg-sell 20
           loss-price (+ loss-modifier (* 2 price-spread))]
       (doseq [order @open-orders]
         (when (or (and (= "buy" (:direction order)) (<= (+ (:price order) loss-price) avg-buy))
                   (and (= "sell" (:direction order)) (<= avg-sell (- (:price order) loss-price))))
-          (when (= "buy" (:direction order))
-            (println "avg buy" avg-buy " order-price: " (:price order)))
-          (when (= "sell" (:direction order))
-            (println "avg sell" avg-buy " order-price: " (:price order)))
+          ;(when (= "buy" (:direction order))
+          ;  (println "avg buy" avg-buy " order-price: " (:price order)))
+          ;(when (= "sell" (:direction order))
+          ;  (println "avg sell" avg-buy " order-price: " (:price order)))
           (swap! deleted-futures conj (api/delete-order venue stock (:id order)))))
       (doseq [deleted-future @deleted-futures]
         (state/update-booking @deleted-future state/booking)
