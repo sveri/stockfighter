@@ -47,7 +47,7 @@
   (let [vsa (h/->vsa)]
     (println "enabling autobuy for: " vsa)
     (reset! bot-enabled true)
-    (schedule #(start-turn-based vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 1000)))))
+    (schedule #(start-turn-based vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 500)))))
 
 
 (defn disable-bot []
@@ -101,6 +101,10 @@
 ;(c/show (c/time-chart [t-three/get-bid-price state/get-excuted-bid] :repaint-speed 2000 :time-periods 500 :y-min 2000) :title "some states")
 ;(c/show (c/time-chart [t-three/get-ask-price state/get-excuted-ask] :repaint-speed 2000 :time-periods 500 :y-min 2000) :title "some states")
 ;(c/show (c/time-chart [state/get-excuted-bid state/get-excuted-ask] :repaint-speed 2000 :time-periods 500 :y-min 2000) :title "some states")
-(c/show (c/time-chart [state/last-quote-bid state/last-quote-ask state/get-excuted-bid get-nav] :repaint-speed 2000 :time-periods 500) :title "some states")
+;(c/show (c/time-chart [state/last-quote-bid state/last-quote-ask state/get-excuted-bid get-nav] :repaint-speed 2000 :time-periods 500) :title "some states")
+;(c/show (c/time-chart [state/last-quote-bid state/last-quote-ask state/get-excuted-bid state/get-excuted-ask] :repaint-speed 2000 :time-periods 500) :title "some states")
+(c/show (c/time-chart [state/last-quote-bid state/last-quote-ask] :repaint-speed 2000 :time-periods 500) :title "some states")
+(c/show (c/time-chart [state/last-quote-ask t-four/get-high-ask] :repaint-speed 2000 :time-periods 500) :title "some states")
+(c/show (c/time-chart [state/last-quote-bid t-four/get-low-bid] :repaint-speed 2000 :time-periods 500) :title "some states")
 
-;(c/show (c/time-chart [get-nav] :repaint-speed 2000 :time-periods 500) :title "some states")
+(c/show (c/time-chart [get-nav] :repaint-speed 2000 :time-periods 500) :title "some states")

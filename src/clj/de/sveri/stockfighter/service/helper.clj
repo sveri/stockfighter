@@ -33,6 +33,11 @@
 (defn abs [n] (max n (- n)))
 
 
-(defn subvec-size-or-orig [v s]
-  (let [s' (if (< (count v) s) (count v) s)]
+(defn subvec-size-or-orig [v to]
+  (let [s' (if (< (count v) to) (count v) to)]
     (subvec (into [] v) 0 s')))
+
+(defn subvec-size-or-orig-from-to [v from to]
+  (let [to' (if (< (+ from (count v)) to) (count v) (+ from to))
+        from (if (< (+ from (count v)) to) 0 from)]
+    (subvec (into [] v) from to')))

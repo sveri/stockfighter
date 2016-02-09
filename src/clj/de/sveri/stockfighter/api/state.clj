@@ -24,6 +24,28 @@
     ;(println "---------")
     (int (/ (reduce + relevant-quotes) last-x))))
 
+(defn ->staticstics [bid-or-ask last-x]
+  (let [quotes' (->quotes (h/->vsa))
+        quotes (map bid-or-ask (h/subvec-size-or-orig (filter #(not (nil? (bid-or-ask %))) quotes') last-x))]
+    (println (stats/mean quotes))
+    (println (stats/median quotes))
+    (println (stats/variance quotes))
+    (println (stats/sd quotes))
+    (println (stats/kurtosis quotes))
+    (println (stats/quantile quotes))))
+
+(defn ->x-quantile [bid-or-ask x last-x]
+  (let [quotes (->quotes (h/->vsa))
+        relevant-quotes (map bid-or-ask (h/subvec-size-or-orig (filter #(not (nil? (bid-or-ask %))) quotes) last-x))]
+    (int (stats/quantile relevant-quotes :probs x))))
+
+(defn ->x-to-y-quantile [bid-or-ask x from to]
+  (let [quotes (->quotes (h/->vsa))
+        relevant-quotes (map bid-or-ask (h/subvec-size-or-orig-from-to (filter #(not (nil? (bid-or-ask %))) quotes) from to))]
+    (int (stats/quantile relevant-quotes :probs x))))
+
+
+
 (def execution-history (atom {}))
 (defn ->executions [vsa] (get @execution-history (h/->unique-key vsa)))
 

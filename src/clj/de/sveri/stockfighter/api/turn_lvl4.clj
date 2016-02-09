@@ -35,57 +35,54 @@
                             :ask
                             ))
 
-(defn bid-much-larger-than-last-one? [cur-buy-price]
-  (let [last-executed-bid (state/get-excuted-bid)
-        best-quote-bid (state/last-quote-bid)]))
 
-(defn is-cur-much-larger-than-avg? []
-  (let [last-executed-bid (state/get-excuted-bid)
-        avg-quotes (state/get-avg-quotes :bid 30)]
-
-    (if (and last-executed-bid avg-quotes)
-      (do (println avg-quotes last-executed-bid (< 1500 (- last-executed-bid avg-quotes)))
-          (< 1000 (- last-executed-bid avg-quotes)))
-      false)))
-
-(def spread-trigger 1000)
+(def spread-trigger 800)
 
 (defn is-cur-bid-much-smaller? [cur-bid]
-  (let [avg-bid (state/get-avg-quotes :bid 20)]
+  (let [avg-bid (state/get-avg-quotes :bid 100)]
     (if (and cur-bid avg-bid)
-      (do (when (< spread-trigger (- avg-bid cur-bid)) (println avg-bid cur-bid (- avg-bid cur-bid))) (< spread-trigger (- avg-bid cur-bid)))
+      (do #_(when (< spread-trigger (- avg-bid cur-bid)) (println avg-bid cur-bid (- avg-bid cur-bid))) (< spread-trigger (- avg-bid cur-bid)))
       false)))
 
 (defn is-cur-ask-much-larger [cur-ask]
-  (let [avg-ask (state/get-avg-quotes :ask 20)]
+  (let [avg-ask (state/get-avg-quotes :ask 100)]
+    ;(println cur-ask avg-ask)
     (if (and cur-ask avg-ask)
-      (do (when (< spread-trigger (- cur-ask avg-ask)) (println cur-ask avg-ask (- cur-ask avg-ask))) (< spread-trigger (- cur-ask avg-ask)))
+      (do #_(when (< spread-trigger (- cur-ask avg-ask)) (println cur-ask avg-ask (- cur-ask avg-ask))) (< spread-trigger (- cur-ask avg-ask)))
       false)))
+
+(defn get-mean-ask []
+  (state/->x-quantile :ask 0.5 1000))
+
+(defn get-high-ask []
+  (state/->x-quantile :ask 0.65 5000))
+
+(defn get-low-bid []
+  (state/->x-quantile :bid 0.35 5000))
 
 (s/defn sell-and-buy [vsa :- schem/vsa
                       open-orders :- (s/atom schem/orders)]
   (let [
-        ;qty-quantified 150
         orders (atom [])
         order-refs (atom [])
-        ;last-executed-bid (state/get-excuted-bid)
+        last-x 100
         last-quote-bid (state/last-quote-bid)
         last-quote-ask (state/last-quote-ask)
-        avg-buy (state/get-avg-quotes :bid 30)
-        avg-sell (state/get-avg-quotes :ask 30)
-        ;buy-price (- avg-buy 40)
-        ;sell-qty (if (< 200 (:position @state/booking)) 75 (:position @state/booking))
-        ;position (+ (:position @state/booking) (open-orders->position @state/open-orders))
-        ;open-orders-pos (open-orders->position @state/open-orders)
-        qty 100
+        mean-ask (state/->x-to-y-quantile :ask 0.5 160 30)
+        mean-bid (state/->x-to-y-quantile :bid 0.5 160 30)
+        ask-high-border (get-high-ask)
+        bid-low-border (get-low-bid)
+        qty 40
         ]
-    (when (is-cur-ask-much-larger last-quote-ask)
-      (println "larger: sell: " (- last-quote-ask 200) " - buy: " avg-buy)
+    (when (< (+ 1000 ask-high-border) last-quote-ask)
+      ;(println "high ask" ask-high-border last-quote-ask)
+      (println "larger: sell: " (- last-quote-ask 200) " - buy: " mean-bid)
       (swap! orders conj (h/->new-order vsa "sell" (- last-quote-ask 200) qty))
-      (swap! orders conj (h/->new-order vsa "buy" avg-buy qty)))
-    (when (is-cur-bid-much-smaller? last-quote-bid)
-      (println "smaller sell: " avg-sell " - buy " (+ 200 last-quote-bid))
-      (swap! orders conj (h/->new-order vsa "sell" avg-sell qty))
+      (swap! orders conj (h/->new-order vsa "buy" mean-bid qty)))
+    (when (< last-quote-bid (- bid-low-border 1000))
+      ;(println "small bid" last-quote-bid bid-low-border)
+      (println "smaller sell: " mean-ask " - buy " (+ 200 last-quote-bid))
+      (swap! orders conj (h/->new-order vsa "sell" mean-ask qty))
       (swap! orders conj (h/->new-order vsa "buy" (+ 200 last-quote-bid) qty)))
     (doseq [order @orders]
       (swap! order-refs conj (api/new-order order)))
