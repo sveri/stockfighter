@@ -55,7 +55,8 @@
   (swap! state/executions-socket assoc (h/->unique-key venue stock account)
          (ws/connect
            (str conf/ws-uri account "/venues/" venue "/executions/stocks/" stock)
-           :on-receive #(parse-execution venue stock account %)
+           :on-receive #(println  %)
+           ;:on-receive #(parse-execution venue stock account %)
            :on-close (fn [a b] (println a " - " b " - " (format "Closed execution websocket for %s?" (str venue stock account)))
                        (when (and (h/restart-api-websockets?) (= 1006 a)) (connect-executions vsa)))
            :on-error #(println (format "Some error occured for: %s - %s - %s: \n %s" venue stock account (.printStackTrace %))))))

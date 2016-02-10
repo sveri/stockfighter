@@ -6,9 +6,10 @@
             [com.rpl.specter :as spec]
             [incanter.stats :as stats]
             [de.sveri.stockfighter.schema-api :as schem]
-            [de.sveri.stockfighter.api.api :as api]))
+            [de.sveri.stockfighter.api.api :as api]
+            [clojure.string :as str]))
 
-
+(def accounts (atom #{}))
 
 (s/defn ->avg-price [orderbooks ask-or-bid & [last]]
   (let [asks (spec/select [spec/ALL ask-or-bid spec/FIRST :price]
@@ -92,8 +93,21 @@
           (swap! open-orders conj r))))))
 
 
+
+
+(defn collect-accounts [{:keys [venue stock]}]
+  (doseq [i (range 1 200)]
+    (let [resp (:error (api/delete-order-fake venue stock i))
+          acc-with-point (second (str/split resp #"ccount "))
+          account (subs acc-with-point 0 (- (count acc-with-point) 1))]
+      (swap! accounts conj account)
+      (Thread/sleep 100))
+    )
+  (println "done collection accounts"))
+
 (defn entry [vsa]
   (let [venue (:venue vsa)
         stock (:stock vsa)]
+    (collect-accounts vsa)
     (sell-and-buy vsa state/open-orders)
     ))

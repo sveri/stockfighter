@@ -19,7 +19,8 @@
 (def bot-enabled (atom false))
 
 ;(def lvl "sell_side")
-(def lvl "irrational_exuberance")
+(def lvl "making_amends")
+;(def lvl "irrational_exuberance")
 
 
 
@@ -110,8 +111,8 @@
 ;(c/show (c/time-chart [state/get-excuted-bid state/get-excuted-ask] :repaint-speed 2000 :time-periods 500 :y-min 2000) :title "some states")
 ;(c/show (c/time-chart [state/last-quote-bid state/last-quote-ask state/get-excuted-bid get-nav] :repaint-speed 2000 :time-periods 500) :title "some states")
 ;(c/show (c/time-chart [state/last-quote-bid state/last-quote-ask state/get-excuted-bid state/get-excuted-ask] :repaint-speed 2000 :time-periods 500) :title "some states")
-(c/show (c/time-chart [state/last-quote-bid state/last-quote-ask] :repaint-speed 2000 :time-periods 500) :title "some states")
-(c/show (c/time-chart [state/last-quote-ask t-four/get-high-ask] :repaint-speed 2000 :time-periods 500) :title "some states")
-(c/show (c/time-chart [state/last-quote-bid t-four/get-low-bid] :repaint-speed 2000 :time-periods 500) :title "some states")
-
-(c/show (c/time-chart [get-nav] :repaint-speed 2000 :time-periods 500) :title "some states")
+;(c/show (c/time-chart [state/last-quote-bid state/last-quote-ask] :repaint-speed 2000 :time-periods 500) :title "some states")
+;(c/show (c/time-chart [state/last-quote-ask t-four/get-high-ask] :repaint-speed 2000 :time-periods 500) :title "some states")
+;(c/show (c/time-chart [state/last-quote-bid t-four/get-low-bid] :repaint-speed 2000 :time-periods 500) :title "some states")
+;
+;(c/show (c/time-chart [get-nav] :repaint-speed 2000 :time-periods 500) :title "some states")
