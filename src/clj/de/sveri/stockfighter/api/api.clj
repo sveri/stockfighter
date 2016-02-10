@@ -68,3 +68,6 @@
 
 (defn stop-game [instance]
   (future (parse-response @(client/get (str gm-uri "instances/" instance "/stop") (with-key-and-defaults)))))
+
+(defn restart-game [instance]
+  (future (parse-response @(client/get (str gm-uri "instances/" instance "/restart") (with-key-and-defaults)))))

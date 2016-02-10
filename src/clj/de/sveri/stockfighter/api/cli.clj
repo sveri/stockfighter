@@ -12,13 +12,14 @@
             [de.sveri.stockfighter.api.lvl-three :as three]
             [de.sveri.stockfighter.api.turn-lvl3 :as t-three]
             [de.sveri.stockfighter.api.turn-lvl4 :as t-four]
+            [de.sveri.stockfighter.api.turn-lvl6 :as t-six]
             [live-chart :as c]))
 
 
 (def bot-enabled (atom false))
 
 ;(def lvl "sell_side")
-(def lvl "dueling_bulldozers")
+(def lvl "irrational_exuberance")
 
 
 
@@ -39,7 +40,7 @@
 (defn start-turn-based [vsa]
   (when (and @tick-allowed @bot-enabled)
     (reset! tick-allowed false)
-    (t-four/entry vsa)
+    (t-six/entry vsa)
     (reset! tick-allowed true)))
 
 (s/defn enable-bots :- s/Any
@@ -47,7 +48,7 @@
   (let [vsa (h/->vsa)]
     (println "enabling autobuy for: " vsa)
     (reset! bot-enabled true)
-    (schedule #(start-turn-based vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 500)))))
+    (schedule #(start-turn-based vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 5000)))))
 
 
 (defn disable-bot []
@@ -79,6 +80,12 @@
   (let [resp @(api/stop-game (h/->instanceid))]
     (println "stopped level")
     (h/restart-api-websockets false)
+    (clojure.pprint/pprint resp)))
+
+(defn restart-level []
+  (let [resp @(api/restart-game (h/->instanceid))]
+    (println "stopped level")
+    (h/restart-api-websockets true)
     (clojure.pprint/pprint resp)))
 
 (defn get-order-book-ask [] (state/get-order-book-ask (h/->vsa)))
