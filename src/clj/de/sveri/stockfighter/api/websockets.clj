@@ -39,26 +39,25 @@
 
 
 (s/defn parse-execution :- s/Any
-  [venue stock account execution-response :- s/Str]
-  (let [execution (json/read-str execution-response :key-fn keyword :value-fn h/api->date)]
+  [venue stock account execution-response :- s/Str execution-history booking]
+  (let [execution (json/read-str execution-response :key-fn keyword :value-fn h/api->date) ]
     (if (:ok execution)
       (do
         ;(println "executed: " execution)
         ;(clojure.pprint/pprint (subvec (into []  (state/->orderbook (h/->vsa)))  0 2))
-        (swap! state/execution-history update (h/->unique-key venue stock account) conj execution)
+        (swap! execution-history update (h/->unique-key venue stock account) conj execution)
           (clean-open-order execution state/open-orders)
-          (state/update-booking (:order execution) state/booking))
+          (state/update-booking (:order execution) booking))
       (println "something else happened: " execution-response))))
 
-(s/defn connect-executions :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa]
+(s/defn connect-executions :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa execution-socket execution-history booking]
   (println "starting execution-ticker for " vsa)
-  (swap! state/executions-socket assoc (h/->unique-key venue stock account)
+  (swap! execution-socket assoc (h/->unique-key venue stock account)
          (ws/connect
            (str conf/ws-uri account "/venues/" venue "/executions/stocks/" stock)
-           :on-receive #(println  %)
-           ;:on-receive #(parse-execution venue stock account %)
+           :on-receive #(parse-execution venue stock account % execution-history booking)
            :on-close (fn [a b] (println a " - " b " - " (format "Closed execution websocket for %s?" (str venue stock account)))
-                       (when (and (h/restart-api-websockets?) (= 1006 a)) (connect-executions vsa)))
+                       (when (and (h/restart-api-websockets?) (= 1006 a)) (connect-executions vsa execution-socket execution-history booking)))
            :on-error #(println (format "Some error occured for: %s - %s - %s: \n %s" venue stock account (.printStackTrace %))))))
 
 (s/defn close-sockets-by-key :- s/Any [{:keys [venue stock account]} :- schem/vsa]
@@ -75,60 +74,4 @@
   (close-all-sockets @state/executions-socket))
 
 
-
-
-;
-;
-;
-;
-;
-
-(def test-book
-  '({:ok     true,
-     :venue  "MOEX",
-     :symbol "UUKG",
-     :ts     #inst "2015-12-30T15:00:34.598-00:00",
-     :bids
-             [{:price 9098, :qty 203, :isBuy true}
-              {:price 8943, :qty 459, :isBuy true}
-              {:price 8899, :qty 459, :isBuy true}
-              {:price 8855, :qty 459, :isBuy true}
-              {:price 8736, :qty 148, :isBuy true}],
-     :asks
-             [{:price 9143, :qty 40, :isBuy false}
-              {:price 9188, :qty 40, :isBuy false}
-              {:price 9233, :qty 40, :isBuy false}]}
-     {:ok     true,
-      :venue  "MOEX",
-      :symbol "UUKG",
-      :ts     #inst "2015-12-30T15:00:24.616-00:00",
-      :bids
-              [{:price 8793, :qty 203, :isBuy true}
-               {:price 8663, :qty 438, :isBuy true}
-               {:price 8620, :qty 438, :isBuy true}
-               {:price 8577, :qty 438, :isBuy true}],
-      :asks
-              [{:price 9175, :qty 47, :isBuy false}
-               {:price 9220, :qty 47, :isBuy false}
-               {:price 9265, :qty 15, :isBuy false}]}
-     {:ok     true,
-      :venue  "MOEX",
-      :symbol "UUKG",
-      :ts     #inst "2015-12-30T15:00:24.616-00:00",
-      :bids
-              [{:price 8793, :qty 203, :isBuy true}
-               {:price 8663, :qty 438, :isBuy true}
-               {:price 8620, :qty 438, :isBuy true}
-               {:price 8577, :qty 438, :isBuy true}],
-      :asks
-              [{:price 9175, :qty 47, :isBuy false}
-               {:price 9220, :qty 47, :isBuy false}
-               {:price 9265, :qty 15, :isBuy false}]}))
-
-;((fn avg-ask [book]
-;   ;(map #(get-in % [:asks :price]) book)
-;   (let [prices (spec/select [spec/ALL :asks spec/FIRST :price] book)]
-;     (int (/ (reduce + prices) (count prices))))
-;   )
-;  test-book)
 

@@ -48,7 +48,7 @@
 
 (s/defn start-ticker :- s/Any [{:keys [venue stock] :as vsa} :- schem/vsa websockets :- s/Any]
   ;(ws/connect-quotes vsa)
-  (ws/connect-executions vsa)
+  ;(ws/connect-executions vsa)
   ;(qh/start-pass-averages vsa websockets)
   (qh/start-pass-executions vsa websockets)
   (jobs/start-game-info (get-in @h/common-state [:game-info :instanceId]) vsa websockets)

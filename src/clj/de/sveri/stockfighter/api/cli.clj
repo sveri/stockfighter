@@ -68,7 +68,7 @@
       (do
         (swap! h/common-state assoc :game-info game-info)
         (let [vsa (h/->vsa)]
-          (ws/connect-executions vsa)
+          (ws/connect-executions vsa state/executions-socket state/execution-history state/booking)
           (ws/connect-quotes vsa)
           (jobs/start-order-book (:venue vsa) (:stock vsa) state/order-book nil)
           (jobs/start-clean-open-orders (:venue vsa) (:stock vsa) state/open-orders)
