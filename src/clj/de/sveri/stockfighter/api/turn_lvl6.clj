@@ -7,107 +7,92 @@
             [incanter.stats :as stats]
             [de.sveri.stockfighter.schema-api :as schem]
             [de.sveri.stockfighter.api.api :as api]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [taoensso.encore :refer [when-lets]]
+            [immutant.scheduling :refer :all]))
 
-(def accounts (atom #{}))
 
-(s/defn ->avg-price [orderbooks ask-or-bid & [last]]
+;(defn tt [a b c]
+;  (when-lets [aa a
+;              bb b]
+;             (+ aa bb)))
+
+(def accounts (atom {}))
+
+(def buy-or-sell (atom "buy"))
+
+(def bids-and-asks (atom {}))
+
+(defn sort-by-val [m]
+  (into (sorted-map-by (fn [key1 key2]
+                         (compare [(get m key2) key2]
+                                  [(get m key1) key1])))
+        m))
+
+
+(defn print-data-from-booking [k]
+  (sort-by-val (reduce (fn [nav-map [account booking-a]]
+                         (if (< 0 (k @booking-a))
+                           (assoc nav-map account
+                                         [(double (/ (k @booking-a) 100))
+                                          (:ask-count @booking-a)
+                                          (:bid-count @booking-a)])
+                           nav-map)
+                       ) {} @accounts)))
+
+(defn switch-buy-or-sell []
+  (let [buy-or-sell' @buy-or-sell
+        new-buy-or-sell (if (= buy-or-sell' "buy") "sell" "buy")]
+    (reset! buy-or-sell new-buy-or-sell)))
+
+(s/defn ->new-order [{:keys [venue stock account] :as vsa} :- schem/vsa buy-or-sell :- schem/direction price :- s/Num qty :- s/Num]
+  {:account account :venue venue :stock stock :price price :qty qty :direction buy-or-sell :orderType "limit"})
+
+
+(s/defn ->avg-price [orderbooks ask-or-bid]
   (let [asks (spec/select [spec/ALL ask-or-bid spec/FIRST :price]
-                          (subvec (into [] orderbooks) 0 0))]
+                          (subvec (into [] orderbooks) 0 (if (< 10 (count orderbooks)) 10 (count orderbooks))))]
     (if (not-empty asks)
       (int (/ (reduce + asks) (count asks)))
-      0))
-  )
+      0)))
 
 
-(s/defn open-orders->position :- s/Num [open-orders :- schem/orders]
-  (let [sell-orders (reduce (fn [a b] (+ a (:qty b))) 0 (filter #(= "sell" (:direction %)) open-orders))
-        buy-orders (reduce (fn [a b] (+ a (:qty b))) 0 (filter #(= "buy" (:direction %)) open-orders))]
-    (- buy-orders sell-orders)))
+(defn start-ws-for-account [vsa account booking-atom]
+  (de.sveri.stockfighter.api.websockets/connect-executions (assoc vsa :account account) state/executions-socket state/execution-history booking-atom))
 
-(defn get-bid-price [] (->> (state/->quotes (h/->vsa))
-                            (filter #(not (nil? (:bid %))))
-                            first
-                            :bid
-                            ))
-(defn get-ask-price [] (->> (state/->quotes (h/->vsa))
-                            (filter #(not (nil? (:ask %))))
-                            first
-                            :ask
-                            ))
+(defn get-resp-from-fake-delete [venue stock order-id]
+  (:error (api/delete-order-fake venue stock order-id)))
 
-
-(def spread-trigger 800)
-
-(defn is-cur-bid-much-smaller? [cur-bid]
-  (let [avg-bid (state/get-avg-quotes :bid 120)]
-    (if (and cur-bid avg-bid)
-      (do #_(when (< spread-trigger (- avg-bid cur-bid)) (println avg-bid cur-bid (- avg-bid cur-bid))) (< spread-trigger (- avg-bid cur-bid)))
-      false)))
-
-(defn is-cur-ask-much-larger [cur-ask]
-  (let [avg-ask (state/get-avg-quotes :ask 120)]
-    ;(println cur-ask avg-ask)
-    (if (and cur-ask avg-ask)
-      (do #_(when (< spread-trigger (- cur-ask avg-ask)) (println cur-ask avg-ask (- cur-ask avg-ask))) (< spread-trigger (- cur-ask avg-ask)))
-      false)))
-
-(defn get-mean-ask []
-  (state/->x-quantile :ask 0.5 1000))
-
-(defn get-high-ask []
-  (state/->x-quantile :ask 0.65 5000))
-
-(defn get-low-bid []
-  (state/->x-quantile :bid 0.35 5000))
-
-(s/defn sell-and-buy [vsa :- schem/vsa
-                      open-orders :- (s/atom schem/orders)]
-  (let [
-        orders (atom [])
-        order-refs (atom [])
-        last-x 100
-        last-quote-bid (state/last-quote-bid)
-        last-quote-ask (state/last-quote-ask)
-        mean-ask (state/->x-to-y-quantile :ask 0.5 160 30)
-        mean-bid (state/->x-to-y-quantile :bid 0.5 160 30)
-        ask-high-border (get-high-ask)
-        bid-low-border (get-low-bid)
-        qty 40
-        ]
-    (when (< (+ 1000 ask-high-border) last-quote-ask)
-      ;(println "high ask" ask-high-border last-quote-ask)
-      (println "larger: sell: " (- last-quote-ask 200) " - buy: " mean-bid)
-      (swap! orders conj (h/->new-order vsa "sell" (- last-quote-ask 200) qty))
-      (swap! orders conj (h/->new-order vsa "buy" mean-bid qty)))
-    (when (< last-quote-bid (- bid-low-border 1000))
-      ;(println "small bid" last-quote-bid bid-low-border)
-      (println "smaller sell: " mean-ask " - buy " (+ 200 last-quote-bid))
-      (swap! orders conj (h/->new-order vsa "sell" mean-ask qty))
-      (swap! orders conj (h/->new-order vsa "buy" (+ 200 last-quote-bid) qty)))
-    (doseq [order @orders]
-      (swap! order-refs conj (api/new-order order)))
-    (doseq [ref @order-refs]
-      (let [r @ref]
-        (when (< 0 (get r :qty 0))
-          (swap! open-orders conj r))))))
-
-
-
-
-(defn collect-accounts [{:keys [venue stock]}]
-  (doseq [i (range 1 200)]
-    (let [resp (:error (api/delete-order-fake venue stock i))
-          acc-with-point (second (str/split resp #"ccount "))
-          account (subs acc-with-point 0 (- (count acc-with-point) 1))]
-      (swap! accounts conj account)
-      (Thread/sleep 100))
-    )
+(defn collect-accounts* [{:keys [venue stock] :as vsa}]
+  (doseq [i (range 1 620)]
+    (try
+      (when-lets [resp (get-resp-from-fake-delete venue stock i)
+                  acc-with-point (second (str/split resp #"ccount "))
+                  account (subs acc-with-point 0 (- (count acc-with-point) 1))]
+                 (when (nil? (get @accounts account))
+                   (let [booking-atom (atom state/booking-default)]
+                     (swap! accounts assoc account booking-atom)
+                     (start-ws-for-account vsa account booking-atom)))
+                 )
+      (catch Exception e (println e)))
+    (Thread/sleep 1000))
   (println "done collection accounts"))
 
-(defn entry [vsa]
-  (let [venue (:venue vsa)
-        stock (:stock vsa)]
-    (collect-accounts vsa)
-    (sell-and-buy vsa state/open-orders)
-    ))
+;(s/defn trigger-buy-or-sell* :- s/Any
+;  [vsa orderbooks]
+;  (println "emitting fake: " @buy-or-sell)
+;  (let [avg-price (->avg-price orderbooks :asks)
+;        order-price (if (= "buy" @buy-or-sell) (+ avg-price 2000) (- avg-price 2000))
+;        order (->new-order vsa @buy-or-sell order-price 20)
+;        order-resp @(api/new-order order)
+;        order-id (:id order-resp)]
+;    (Thread/sleep 5000)
+;    (collect-accounts order-id vsa)
+;    ;(switch-buy-or-sell)
+;    ))
+
+
+
+
+
+

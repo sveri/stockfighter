@@ -47,7 +47,7 @@
         ;(clojure.pprint/pprint (subvec (into []  (state/->orderbook (h/->vsa)))  0 2))
         (swap! execution-history update (h/->unique-key venue stock account) conj execution)
           (clean-open-order execution state/open-orders)
-          (state/update-booking (:order execution) booking))
+        (when booking (state/update-booking (:order execution) booking)))
       (println "something else happened: " execution-response))))
 
 (s/defn connect-executions :- s/Any [{:keys [venue stock account] :as vsa} :- schem/vsa execution-socket execution-history booking]

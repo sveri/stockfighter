@@ -56,16 +56,23 @@
     (when (< 0 last-x') (int (/ (reduce + (map :price (subvec filtered-execs 0 last-x'))) last-x')))))
 
 
-(defn get-excuted-bid []
-  (let [execs (->executions (h/->vsa))]
+(defn get-excuted-bid [vsa]
+  (let [execs (->executions vsa)]
     (:price (first (filter #(= "buy" (get-in % [:order :direction])) execs)))))
 
-(defn get-excuted-ask []
-  (let [execs (->executions (h/->vsa))]
+(defn get-excuted-ask [vsa]
+  (let [execs (->executions vsa)]
     (:price (first (filter #(= "sell" (get-in % [:order :direction])) execs)))))
 
+(defn get-executed-spread [vsa]
+  )
+
+(defn get-number-of-asks-and-counts [accounts]
+  )
+
 ; nav = cash + (shares * share_price)
-(def booking (atom {:nav 0 :position 0 :cash 0 :avg-bid 0 :avg-ask 0 :ask-count 0 :bid-count 0 :buy-sell-lock false}))
+(def booking-default {:nav 0 :position 0 :cash 0 :avg-bid 0 :avg-ask 0 :ask-count 0 :bid-count 0 :buy-sell-lock false})
+(def booking (atom booking-default))
 
 
 (s/defn ->nav [new-cash :- s/Num position :- s/Num order :- schem/order]

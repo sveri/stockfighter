@@ -9,8 +9,6 @@
             [schema.core :as s]
             [immutant.scheduling :refer :all]
             [de.sveri.stockfighter.api.turnbased :as turn]
-            [de.sveri.stockfighter.api.lvl-three :as three]
-            [de.sveri.stockfighter.api.turn-lvl3 :as t-three]
             [de.sveri.stockfighter.api.turn-lvl4 :as t-four]
             [de.sveri.stockfighter.api.turn-lvl6 :as t-six]
             [live-chart :as c]))
@@ -30,18 +28,10 @@
 (def tick-allowed (atom true))
 
 
-(s/defn tick-bot [{:keys [venue stock] :as vsa} :- schem/vsa]
-  (when (and @tick-allowed @bot-enabled)
-  ;(when @bot-enabled
-    (reset! tick-allowed false)
-    (three/be-a-market-maker-now? vsa state/open-orders
-                                  (get @state/order-book (h/->unique-key venue stock)))
-    (reset! tick-allowed true)))
-
 (defn start-turn-based [vsa]
   (when (and @tick-allowed @bot-enabled)
     (reset! tick-allowed false)
-    (t-six/entry vsa)
+    (t-six/collect-accounts* vsa)
     (reset! tick-allowed true)))
 
 (s/defn enable-bots :- s/Any
@@ -49,7 +39,7 @@
   (let [vsa (h/->vsa)]
     (println "enabling autobuy for: " vsa)
     (reset! bot-enabled true)
-    (schedule #(start-turn-based vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 5000)))))
+    (schedule #(start-turn-based vsa) (-> (id (str "bot-" (h/->unique-key vsa))) (every 60000)))))
 
 
 (defn disable-bot []
@@ -89,14 +79,6 @@
     (h/restart-api-websockets true)
     (clojure.pprint/pprint resp)))
 
-(defn get-order-book-ask [] (state/get-order-book-ask (h/->vsa)))
-
-(defn get-avg-asks [] (t-three/->avg-price (state/->orderbook (h/->vsa)) :asks))
-
-(defn get-nav [] (int (/ (:nav @state/booking) 100)))
-
-;(defn get-mean-bid [] (first (t-three/statistics)))
-;(defn get-mean-ask [] (second (t-three/statistics)))
 
 ;first red
 ;second blue
@@ -113,6 +95,6 @@
 ;(c/show (c/time-chart [state/last-quote-bid state/last-quote-ask state/get-excuted-bid state/get-excuted-ask] :repaint-speed 2000 :time-periods 500) :title "some states")
 ;(c/show (c/time-chart [state/last-quote-bid state/last-quote-ask] :repaint-speed 2000 :time-periods 500) :title "some states")
 ;(c/show (c/time-chart [state/last-quote-ask t-four/get-high-ask] :repaint-speed 2000 :time-periods 500) :title "some states")
-;(c/show (c/time-chart [state/last-quote-bid t-four/get-low-bid] :repaint-speed 2000 :time-periods 500) :title "some states")
+(c/show (c/time-chart [state/last-quote-bid state/last-quote-ask] :repaint-speed 2000 :time-periods 500) :title "some states")
 ;
 ;(c/show (c/time-chart [get-nav] :repaint-speed 2000 :time-periods 500) :title "some states")

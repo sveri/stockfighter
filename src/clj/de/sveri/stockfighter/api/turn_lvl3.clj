@@ -79,51 +79,51 @@
 
 
 
-(s/defn sell-and-buy [vsa :- schem/vsa
-                      open-orders :- (s/atom schem/orders)]
-  (let [
-        bid-price' (get-bid-price)
-        ask-price' (get-ask-price)
-        spread (int (/ (- ask-price' bid-price' 10) 2))
-        bid-price (+ bid-price' spread)
-        ask-price (- ask-price' spread)
-        qty-quantified 150
-        orders (atom [])
-        order-refs (atom [])
-        ;buy-order-fn #(h/->new-order vsa "buy" bid-price qty-quantified)
-        ;sell-order-fn #(h/->new-order vsa "sell" ask-price qty-quantified)
-        last-executed-bid (state/get-excuted-bid)
-        avg-executed-buy (if (nil? (state/get-avg-executed "buy" 10)) bid-price (state/get-avg-executed "buy" 10))
-        avg-buy (state/get-avg-quotes :bid 5)
-        buy-price (- avg-buy 40)
-        ;avg-executed-sell (if (nil? (state/get-avg-executed "sell" 10)) ask-price (state/get-avg-executed "sell" 10))
-        sell-qty (if (< 200 (:position @state/booking)) 75 (:position @state/booking))
-        position (+ (:position @state/booking) (open-orders->position @state/open-orders))
-        open-orders-pos (open-orders->position @state/open-orders)
-        ;max-pos -200
-        ]
-    (when (and (< open-orders-pos 250) (< -250 open-orders-pos) )
-      (cond
-        (< 0 position) (do (swap! orders conj (h/->new-order vsa "sell" (+ 100 last-executed-bid) sell-qty)))
-        (<= position 0) (do (swap! orders conj (h/->new-order vsa "buy" buy-price qty-quantified))))
-      (doseq [order @orders]
-        (swap! order-refs conj (api/new-order order)))
-      (doseq [ref @order-refs]
-        (let [r @ref]
-          (when (< 0 (get r :qty 0))
-            #_(if (and (< position (h/abs max-pos)) (< max-pos position))
-                (add-stats succ-buy-sell spread qty-quantified r)
-                (add-stats no-succ-buy-sell spread qty-quantified r))
-            (swap! open-orders conj r))))
-      )
+(comment (s/defn sell-and-buy [vsa :- schem/vsa
+                       open-orders :- (s/atom schem/orders)]
+   (let [
+         bid-price' (get-bid-price)
+         ask-price' (get-ask-price)
+         spread (int (/ (- ask-price' bid-price' 10) 2))
+         bid-price (+ bid-price' spread)
+         ask-price (- ask-price' spread)
+         qty-quantified 150
+         orders (atom [])
+         order-refs (atom [])
+         ;buy-order-fn #(h/->new-order vsa "buy" bid-price qty-quantified)
+         ;sell-order-fn #(h/->new-order vsa "sell" ask-price qty-quantified)
+         last-executed-bid (state/get-excuted-bid)
+         avg-executed-buy (if (nil? (state/get-avg-executed "buy" 10)) bid-price (state/get-avg-executed "buy" 10))
+         avg-buy (state/get-avg-quotes :bid 5)
+         buy-price (- avg-buy 40)
+         ;avg-executed-sell (if (nil? (state/get-avg-executed "sell" 10)) ask-price (state/get-avg-executed "sell" 10))
+         sell-qty (if (< 200 (:position @state/booking)) 75 (:position @state/booking))
+         position (+ (:position @state/booking) (open-orders->position @state/open-orders))
+         open-orders-pos (open-orders->position @state/open-orders)
+         ;max-pos -200
+         ]
+     (when (and (< open-orders-pos 250) (< -250 open-orders-pos))
+       (cond
+         (< 0 position) (do (swap! orders conj (h/->new-order vsa "sell" (+ 100 last-executed-bid) sell-qty)))
+         (<= position 0) (do (swap! orders conj (h/->new-order vsa "buy" buy-price qty-quantified))))
+       (doseq [order @orders]
+         (swap! order-refs conj (api/new-order order)))
+       (doseq [ref @order-refs]
+         (let [r @ref]
+           (when (< 0 (get r :qty 0))
+             #_(if (and (< position (h/abs max-pos)) (< max-pos position))
+                 (add-stats succ-buy-sell spread qty-quantified r)
+                 (add-stats no-succ-buy-sell spread qty-quantified r))
+             (swap! open-orders conj r))))
+       )
 
-    ;(when (< 0 (get @buy-resp
-    ;(cond
-    ;  (comment (and (<= position (h/abs max-pos)) (<= max-pos position)) (do (swap! orders conj (buy-order-fn))
-    ;                                                                         (swap! orders conj (sell-order-fn))))
-    ;  (< (h/abs max-pos) position) (do (swap! orders conj (h/->new-order vsa "sell" avg-executed-sell qty-quantified)))
-    ;  (<= position 0) (do (swap! orders conj (h/->new-order vsa "buy" avg-executed-buy qty-quantified))))
-    ))
+     ;(when (< 0 (get @buy-resp
+     ;(cond
+     ;  (comment (and (<= position (h/abs max-pos)) (<= max-pos position)) (do (swap! orders conj (buy-order-fn))
+     ;                                                                         (swap! orders conj (sell-order-fn))))
+     ;  (< (h/abs max-pos) position) (do (swap! orders conj (h/->new-order vsa "sell" avg-executed-sell qty-quantified)))
+     ;  (<= position 0) (do (swap! orders conj (h/->new-order vsa "buy" avg-executed-buy qty-quantified))))
+     )))
 
 
 (defn entry [vsa]
