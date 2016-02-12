@@ -21,8 +21,6 @@
 
 (def buy-or-sell (atom "buy"))
 
-(def bids-and-asks (atom {}))
-
 (defn sort-by-val [m]
   (into (sorted-map-by (fn [key1 key2]
                          (compare [(get m key2) key2]

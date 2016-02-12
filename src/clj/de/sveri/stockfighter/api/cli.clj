@@ -62,6 +62,7 @@
           (ws/connect-quotes vsa)
           (jobs/start-order-book (:venue vsa) (:stock vsa) state/order-book nil)
           (jobs/start-clean-open-orders (:venue vsa) (:stock vsa) state/open-orders)
+          (jobs/start-fill-asks-and-bids)
           (h/restart-api-websockets true)
           ;(jobs/start-correcting-orders vsa)
           ))

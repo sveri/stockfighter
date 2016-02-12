@@ -126,3 +126,18 @@
 
 (defn stop-pass-booking []
   (stop (id "pass-booking")))
+
+
+(s/defn start-fill-asks-and-bids* :- s/Any
+  []
+  (let [ask (state/last-quote-ask)
+        bid (state/last-quote-bid)
+        counter (:counter @state/bids-and-asks)]
+    (swap! state/bids-and-asks assoc counter {:bid bid :ask ask})
+    (swap! state/bids-and-asks assoc :counter (+ 1 counter))))
+
+(s/defn start-fill-asks-and-bids :- s/Any []
+  (schedule #(start-fill-asks-and-bids*) (-> (id "fill-asks-and-bids") (every 1000))))
+
+(defn stop-fill-asks-and-bids []
+  (stop (id "fill-asks-and-bids")))

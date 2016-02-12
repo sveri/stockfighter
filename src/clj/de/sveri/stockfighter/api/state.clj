@@ -113,3 +113,7 @@
 
 (def open-orders (atom []))
 (add-watch open-orders :orders-validation (fn [_ _ _ new] (s/validate schem/orders new)))
+
+
+; {:counter 1 :data {1 {:ask 23 :bid 21} 2 {:ask 25 :bid 24}}}
+(def bids-and-asks (atom {:counter 1 :data {}}))
