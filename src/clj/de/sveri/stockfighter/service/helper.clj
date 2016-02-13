@@ -41,3 +41,5 @@
   (let [to' (if (< (+ from (count v)) to) (count v) (+ from to))
         from (if (< (+ from (count v)) to) 0 from)]
     (subvec (into [] v) from to')))
+
+(s/defn get-day-of-transaction :- s/Num [game-start-timestamp :- s/Num transaction-date :- s/Inst ])

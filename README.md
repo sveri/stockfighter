@@ -1,3 +1,8 @@
+# ** THIS CODE CONTAINS SPOILERS **
+
+
+
+
 # stockfigherui
 
 Your new project at <http://localhost:3000>

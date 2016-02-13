@@ -1,6 +1,7 @@
 (ns de.sveri.stockfighter.schema-api
   (:require [schema.core :as s]
-    #?(:clj [clj-time.format :as f])))
+    #?(:clj
+            [clj-time.format :as f])))
 
 #?(:clj (def api-time-format (f/formatters :date-time)))
 
@@ -73,7 +74,8 @@
 (def ok-response {:status (s/eq 200) :headers s/Any :body {:ok s/Str}})
 (def common-state {:game-info          levels-response
                    :game-state         game-state
-                   :restart-websockets s/Bool})
+                   :restart-websockets s/Bool
+                   :ts-of-day-one      s/Num})
 
 (def booking {:nav           s/Num :position s/Num :cash s/Num :avg-bid s/Num :avg-ask s/Num :ask-count s/Num :bid-count s/Num
               :buy-sell-lock s/Bool (s/optional-key :last-buy) s/Num})
@@ -86,7 +88,7 @@
 (def ticker {:bid-avg s/Num :bid-avg-last-10 s/Num :bid-avg-last-100 s/Num})
 
 (def state {(s/optional-key :orderbook)       [order-book]
-            (s/optional-key :booking) booking
+            (s/optional-key :booking)         booking
             (s/optional-key :orders)          orders
             (s/optional-key :ticker)          ticker
             (s/optional-key :game-state)      game-state

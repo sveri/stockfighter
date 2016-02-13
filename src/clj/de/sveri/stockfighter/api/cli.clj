@@ -11,7 +11,9 @@
             [de.sveri.stockfighter.api.turnbased :as turn]
             [de.sveri.stockfighter.api.turn-lvl4 :as t-four]
             [de.sveri.stockfighter.api.turn-lvl6 :as t-six]
-            [live-chart :as c]))
+            [live-chart :as c]
+            [clj-time.core :as time-core]
+            [clj-time.coerce :as time-coerce]))
 
 
 (def bot-enabled (atom false))
@@ -64,6 +66,7 @@
           (jobs/start-clean-open-orders (:venue vsa) (:stock vsa) state/open-orders)
           (jobs/start-fill-asks-and-bids)
           (h/restart-api-websockets true)
+          (swap! h/common-state assoc :ts-of-day-one (time-coerce/to-long (time-core/now)))
           ;(jobs/start-correcting-orders vsa)
           ))
       (println "error starting game: " game-info))))
