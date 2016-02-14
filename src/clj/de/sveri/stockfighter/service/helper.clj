@@ -1,6 +1,7 @@
 (ns de.sveri.stockfighter.service.helper
   (:require [de.sveri.stockfighter.schema-api :as schem]
             [clj-time.format :as f]
+            [clj-time.coerce :as coerce]
             [schema.core :as s]))
 
 (def common-state (atom {:restart-websockets false}))
@@ -42,4 +43,7 @@
         from (if (< (+ from (count v)) to) 0 from)]
     (subvec (into [] v) from to')))
 
-(s/defn get-day-of-transaction :- s/Num [game-start-timestamp :- s/Num transaction-date :- s/Inst ])
+(s/defn get-day-of-transaction :- s/Num [game-start-timestamp :- s/Num transaction-date :- s/Inst ]
+  (let [transaction-time-stamp (coerce/to-long transaction-date)
+        time-difference (- transaction-time-stamp game-start-timestamp)]
+    (int (/ time-difference 1000 5))))

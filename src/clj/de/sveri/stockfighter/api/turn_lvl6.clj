@@ -17,6 +17,10 @@
 ;              bb b]
 ;             (+ aa bb)))
 
+(def default-account {s/Str {:booking-atom state/booking-default
+                             :5-day-nav s/Num
+                             :10-day-nav s/Num}})
+
 (def accounts (atom {}))
 
 (def buy-or-sell (atom "buy"))
@@ -76,21 +80,11 @@
     (Thread/sleep 1000))
   (println "done collection accounts"))
 
-;(s/defn trigger-buy-or-sell* :- s/Any
-;  [vsa orderbooks]
-;  (println "emitting fake: " @buy-or-sell)
-;  (let [avg-price (->avg-price orderbooks :asks)
-;        order-price (if (= "buy" @buy-or-sell) (+ avg-price 2000) (- avg-price 2000))
-;        order (->new-order vsa @buy-or-sell order-price 20)
-;        order-resp @(api/new-order order)
-;        order-id (:id order-resp)]
-;    (Thread/sleep 5000)
-;    (collect-accounts order-id vsa)
-;    ;(switch-buy-or-sell)
-;    ))
+
+(defn calculate-timed-nav [day-offset execution bids-and-asks]
+  )
 
 
-
-
-
+(s/defn calculate-timed-navs [accounts-atom execution-history-atom bids-and-asks]
+  (dose))
 
